@@ -1,0 +1,170 @@
+.mascot {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  z-index: 90;
+  width: min(360px, calc(100vw - 32px));
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+}
+.mascot--out {
+  transform: translateY(140%) scale(0.9);
+  opacity: 0;
+  pointer-events: none;
+}
+.mascot--in {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.mascot__card {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.mascot__bubble {
+  position: relative;
+  flex: 1;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 18px 18px 6px 18px;
+  box-shadow: var(--shadow-lg);
+  padding: 16px 18px 14px;
+}
+/* Bubble tail pointing to the bear */
+.mascot__bubble::after {
+  content: "";
+  position: absolute;
+  right: -9px;
+  bottom: 18px;
+  width: 18px;
+  height: 18px;
+  background: var(--bg-elevated);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  transform: rotate(-45deg);
+}
+
+.mascot__tag {
+  display: inline-block;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+.mascot__tag--quote {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.mascot__tag--meme {
+  color: #1b7a41;
+  background: #dff5e6;
+}
+html[data-theme="dark"] .mascot__tag--meme {
+  color: #57c680;
+  background: #12331f;
+}
+
+.mascot__text {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.45;
+}
+.mascot__attr {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.mascot__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.mascot__btn {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: var(--accent);
+  color: #fff;
+  transition: background-color 0.2s ease, border-color 0.2s ease,
+    color 0.2s ease;
+}
+.mascot__btn:hover {
+  background: var(--accent-hover);
+}
+.mascot__btn--ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--border-strong);
+}
+.mascot__btn--ghost:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.mascot__close {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  box-shadow: var(--shadow-sm);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.mascot__close:hover {
+  color: var(--accent);
+  transform: scale(1.08);
+}
+
+.mascot__bear {
+  flex-shrink: 0;
+  animation: mascot-bob 3.2s ease-in-out infinite;
+}
+@keyframes mascot-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot {
+    transition: opacity 0.3s ease;
+  }
+  .mascot--out {
+    transform: none;
+  }
+  .mascot__bear {
+    animation: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .mascot {
+    left: 12px;
+    bottom: 12px;
+  }
+  .mascot__bear svg {
+    width: 78px;
+    height: 78px;
+  }
+}

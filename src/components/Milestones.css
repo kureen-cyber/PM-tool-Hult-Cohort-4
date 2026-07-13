@@ -1,0 +1,345 @@
+.milestones__head {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 48px;
+}
+.milestones__head .section-lead {
+  margin-inline: auto;
+}
+
+.milestones__list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.milestone {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 28px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 16px;
+  padding: 24px 26px;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease,
+    transform 0.2s ease;
+}
+.milestone:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.milestone--done {
+  border-left-color: #1b7a41;
+}
+
+.milestone__top {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.milestone__week {
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--accent);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.milestone__theme {
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.milestone__tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+.milestone__status {
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1b7a41;
+}
+html[data-theme="dark"] .milestone__status {
+  color: #57c680;
+}
+
+.milestone__deliverable {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+}
+.milestone__desc {
+  color: var(--text-muted);
+  font-size: 0.96rem;
+}
+
+/* Submission area */
+.milestone__submit {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.milestone__dropzone {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: 12px;
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.milestone__dropzone:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.milestone__drop-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 1.2rem;
+}
+.milestone__drop-text {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.92rem;
+  color: var(--text);
+  overflow: hidden;
+}
+.milestone__drop-text strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.milestone__drop-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.milestone__file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.milestone__link-row {
+  display: flex;
+  gap: 10px;
+}
+.milestone__link {
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 10px 12px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.milestone__link::placeholder {
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+.milestone__link:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+.milestone__btn {
+  padding: 10px 20px;
+  white-space: nowrap;
+}
+
+.milestone__submit-btn {
+  align-self: flex-start;
+}
+
+.milestone__sub-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+/* Challenges box */
+.milestone__challenges {
+  margin-top: 2px;
+}
+.milestone__textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 10px 12px;
+  resize: vertical;
+  min-height: 72px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.milestone__textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+.milestone__textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+/* Peer vote */
+.milestone__vote {
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border-strong);
+}
+.milestone__vote-row {
+  display: flex;
+  gap: 10px;
+}
+.milestone__vote-select {
+  flex: 1;
+  min-width: 0;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  padding: 10px 12px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.milestone__vote-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+.milestone__voted {
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--accent-soft);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.milestone__tally {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.milestone__tally-item {
+  display: grid;
+  grid-template-columns: minmax(90px, 32%) 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+.milestone__tally-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+.milestone__tally-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+.milestone__tally-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--red-400));
+  transition: width 0.4s ease;
+}
+.milestone__tally-count {
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 16px;
+  text-align: right;
+}
+
+/* Submitted state */
+.milestone__submitted {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid #bfe6cd;
+  background: #f2fbf5;
+  border-radius: 12px;
+}
+html[data-theme="dark"] .milestone__submitted {
+  border-color: #205234;
+  background: #10281a;
+}
+.milestone__submitted-ref {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--text);
+  word-break: break-word;
+}
+.milestone__submitted-challenges {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+.milestone__submitted-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.milestone__submitted .milestone__btn {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 8px 16px;
+}
+.milestone__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+@media (max-width: 820px) {
+  .milestone {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+@media (max-width: 480px) {
+  .milestone__link-row {
+    flex-direction: column;
+  }
+  .milestone__btn {
+    width: 100%;
+  }
+}
