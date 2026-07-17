@@ -32,7 +32,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 48px;
+  margin-bottom: 0;
 }
 .race__track {
   position: relative;
@@ -91,6 +91,53 @@
   pointer-events: none;
 }
 
+/* Step quote under the runner */
+.race__quote-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.race__quote-lane {
+  position: relative;
+  flex: 1;
+  height: 30px;
+}
+.race__quote-spacer {
+  flex-shrink: 0;
+  width: 120px;
+  padding-left: 10px;
+}
+.race__quote {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 5px 14px;
+  border-radius: 999px;
+  transition: left 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: quote-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes quote-pop {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .race__quote {
+    animation: none;
+  }
+}
+
 /* Finish line + bear */
 .race__finish {
   position: relative;
@@ -129,6 +176,9 @@
 }
 
 /* Checklist grid */
+.progress-steps {
+  padding: 28px 0 72px;
+}
 .progress-tracker__grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -221,5 +271,11 @@ html[data-theme="dark"] .prog-item__status.is-done {
   }
   .race__finish {
     width: 96px;
+  }
+  .race__quote-spacer {
+    width: 96px;
+  }
+  .race__quote {
+    font-size: 0.78rem;
   }
 }

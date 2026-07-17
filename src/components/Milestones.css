@@ -88,6 +88,31 @@ html[data-theme="dark"] .milestone__status {
   color: var(--text-muted);
   font-size: 0.96rem;
 }
+.milestone__deadlines {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0 0;
+}
+.milestone__deadlines div {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  border: 1px solid var(--border);
+}
+.milestone__deadlines dt {
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.milestone__deadlines dd {
+  margin: 3px 0 0;
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 600;
+}
 
 /* Submission area */
 .milestone__submit {
@@ -336,6 +361,9 @@ html[data-theme="dark"] .milestone__submitted {
   }
 }
 @media (max-width: 480px) {
+  .milestone__deadlines {
+    grid-template-columns: 1fr;
+  }
   .milestone__link-row {
     flex-direction: column;
   }

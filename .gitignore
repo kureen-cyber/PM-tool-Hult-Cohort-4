@@ -1,3 +1,10 @@
+.env.local
+.env.*.local
+!.env.example
+
+# Separate cohort-program working clone (not part of this app)
+hult-cohort-program/
+
 node_modules
 dist
 dist-ssr

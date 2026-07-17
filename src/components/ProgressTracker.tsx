@@ -3,17 +3,33 @@ import { MILESTONES } from "../data/milestones";
 import { useProgress } from "../context/ProgressContext";
 import "./ProgressTracker.css";
 
+// One quote per completed step (registration + the six weekly projects),
+// shown under the progress bar at the runner's current position.
+const STEP_QUOTES = [
+  "Keep moving forward",
+  "Success starts with courage",
+  "Discipline creates freedom",
+  "Progress over perfection",
+  "Rise above every challenge",
+  "Dream. Believe. Achieve",
+  "Your potential is limitless",
+];
+
 export default function ProgressTracker() {
   const {
-    submissions,
     submittedCount,
     percentComplete,
-    registeredStep,
     completedSteps,
     totalSteps,
   } = useProgress();
 
   const done = percentComplete >= 100;
+  const stepQuote =
+    completedSteps > 0
+      ? STEP_QUOTES[Math.min(completedSteps, STEP_QUOTES.length) - 1]
+      : null;
+  // Keep the quote from spilling past the track's edges.
+  const quotePosition = Math.min(Math.max(percentComplete, 9), 91);
 
   return (
     <section id="progress" className="section progress-tracker">
@@ -63,7 +79,31 @@ export default function ProgressTracker() {
           </div>
         </div>
 
-        {/* Submitted projects checklist */}
+        {stepQuote && (
+          <div className="race__quote-row" aria-live="polite">
+            <div className="race__quote-lane">
+              <span
+                key={completedSteps}
+                className="race__quote"
+                style={{ left: `${quotePosition}%` }}
+              >
+                “{stepQuote}”
+              </span>
+            </div>
+            <div className="race__quote-spacer" aria-hidden="true" />
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+export function ProgressSteps() {
+  const { submissions, registeredStep } = useProgress();
+
+  return (
+    <section className="progress-steps" aria-label="Course steps">
+      <div className="container">
         <div className="progress-tracker__grid">
           <div
             className={`prog-item ${

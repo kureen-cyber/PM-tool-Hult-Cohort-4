@@ -148,9 +148,9 @@ export default function Registration() {
               You're on the list, {registrant.firstName}!
             </h2>
             <p className="section-lead registration__success-lead">
-              Thanks for registering for Ludwitt Academy Cohort 4 — that's your
-              first move on the progress bar. Now confirm your email to activate
-              your account.
+              Thanks for registering for the Hult International Business School
+              Developer Program — that's your first move on the progress bar.
+              Now confirm your email to activate your account.
             </p>
 
             <div className="verify">
@@ -177,7 +177,8 @@ export default function Registration() {
                     <div className="verify__email">
                       <div className="verify__email-head">
                         <span className="verify__from">
-                          Ludwitt Academy &lt;no-reply@ludwitt.academy&gt;
+                          Hult International Business School
+                          &lt;no-reply@ludwitt.academy&gt;
                         </span>
                         <span className="verify__subject">
                           Verify your email to join Cohort 4
@@ -185,7 +186,8 @@ export default function Registration() {
                       </div>
                       <p className="verify__email-body">
                         Hi {registrant.firstName}, please confirm your email
-                        address to activate your Ludwitt Academy account.
+                        address to activate your Hult International Business
+                        School account.
                       </p>
                       <button
                         type="button"
@@ -448,7 +450,8 @@ export default function Registration() {
               onChange={(e) => update("agree", e.target.checked)}
             />
             <span>
-              I agree to the Ludwitt Academy program terms and privacy policy.
+              I agree to the Hult International Business School program terms
+              and privacy policy.
             </span>
           </label>
           {errors.agree && <p className="field__error">{errors.agree}</p>}

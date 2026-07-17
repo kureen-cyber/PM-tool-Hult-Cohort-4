@@ -101,6 +101,34 @@
 .modal__error {
   margin: -4px 0 0;
 }
+.modal__info {
+  margin: -4px 0 0;
+  color: #1b7a41;
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+html[data-theme="dark"] .modal__info {
+  color: #57c680;
+}
+.modal__banner {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+.modal__banner code {
+  font-size: 0.78rem;
+}
+.modal__verify-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+  align-items: center;
+}
 .modal__footer {
   text-align: center;
   margin-top: 22px;
@@ -125,4 +153,11 @@
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+.modal .field__hint {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.35;
 }

@@ -1,4 +1,4 @@
-# Ludwitt Academy · PM Tool (Cohort 4)
+# Hult International Business School · Developer Program
 
 A project management tool for running the **Forward Deployed Engineers** course.
 Built with a fresh, modern red & white design, a light/dark mode toggle, a
@@ -7,17 +7,20 @@ student registration section, and a log in flow.
 ## Tech stack
 
 - [Vite](https://vitejs.dev/) + [React 18](https://react.dev/) + TypeScript
+- [Firebase](https://firebase.google.com/) Auth + Firestore (optional until `.env.local` is set)
 - CSS custom properties for theming (no CSS framework dependency)
 
 ## Getting started
 
 ```bash
 npm install
+cp .env.example .env.local   # fill Firebase web config for real auth
 npm run dev
 ```
 
-The dev server runs at [http://localhost:5173](http://localhost:5173) and opens
-automatically.
+Without Firebase env vars the app runs in **demo mode** (local-only auth).
+See [FIREBASE.md](FIREBASE.md) for Auth, email verification, staff roles, and
+Firestore rules.
 
 ## Available scripts
 

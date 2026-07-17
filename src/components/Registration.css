@@ -179,6 +179,34 @@
 .verify__toggle {
   padding: 8px 16px;
 }
+.verify__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 12px;
+}
+.verify__signed-in {
+  margin-top: 12px;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+.verify__status {
+  margin-top: 14px;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.registration__demo-banner {
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 0.88rem;
+}
+.registration__demo-banner code {
+  font-size: 0.8rem;
+}
 .verify__email {
   margin-top: 16px;
   text-align: left;

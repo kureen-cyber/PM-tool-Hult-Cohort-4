@@ -12,10 +12,10 @@ export default function Footer({ activeView, onNavigate }: FooterProps) {
       <div className="container footer__inner">
         <div className="footer__brand">
           <span className="footer__mark" aria-hidden="true">
-            LA
+            HULT
           </span>
           <div>
-            <p className="footer__name">Ludwitt Academy</p>
+            <p className="footer__name">Hult International Business School</p>
             <p className="footer__tagline">
               Training the next generation of forward deployed engineers.
             </p>
@@ -37,7 +37,9 @@ export default function Footer({ activeView, onNavigate }: FooterProps) {
         </nav>
       </div>
       <div className="container footer__bottom">
-        <span>© {new Date().getFullYear()} Ludwitt Academy · Cohort 4</span>
+        <span>
+          © {new Date().getFullYear()} Hult International Business School
+        </span>
         <span>Built for the Hult program</span>
       </div>
     </footer>

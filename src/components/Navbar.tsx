@@ -42,14 +42,14 @@ export default function Navbar({
           type="button"
           className="brand"
           onClick={() => go("overview")}
-          aria-label="Ludwitt Academy home"
+          aria-label="Hult International Business School home"
         >
           <span className="brand__mark" aria-hidden="true">
-            LA
+            HULT
           </span>
           <span className="brand__name">
-            Ludwitt&nbsp;Academy
-            <span className="brand__sub">Hult Developer Program, Cohort 4</span>
+            Hult International Business School
+            <span className="brand__sub">Developer Program</span>
           </span>
         </button>
 
@@ -82,7 +82,9 @@ export default function Navbar({
               <button
                 type="button"
                 className="btn btn-ghost"
-                onClick={logout}
+                onClick={() => {
+                  void logout();
+                }}
               >
                 Log Out
               </button>

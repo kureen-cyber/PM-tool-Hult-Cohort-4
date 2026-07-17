@@ -3,6 +3,15 @@ import { MILESTONES, type Milestone } from "../data/milestones";
 import { useProgress } from "../context/ProgressContext";
 import "./Milestones.css";
 
+const DEADLINE_FORMAT = new Intl.DateTimeFormat("en-GB", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+});
+
 export default function Milestones() {
   return (
     <section id="milestones" className="section milestones">
@@ -99,6 +108,16 @@ function MilestoneCard({ milestone }: { milestone: Milestone }) {
         </div>
         <h3 className="milestone__deliverable">{milestone.deliverable}</h3>
         <p className="milestone__desc">{milestone.description}</p>
+        <dl className="milestone__deadlines">
+          <div>
+            <dt>Submission due</dt>
+            <dd>{DEADLINE_FORMAT.format(new Date(milestone.submissionDeadline))}</dd>
+          </div>
+          <div>
+            <dt>Review &amp; vote due</dt>
+            <dd>{DEADLINE_FORMAT.format(new Date(milestone.reviewDeadline))}</dd>
+          </div>
+        </dl>
       </div>
 
       <div className="milestone__submit">

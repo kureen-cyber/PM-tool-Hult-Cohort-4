@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useAuth, ROLE_LABELS, type Role } from "../context/AuthContext";
+import { useAuth, type Role } from "../context/AuthContext";
 import "./LoginModal.css";
 
 interface LoginModalProps {
@@ -8,16 +8,46 @@ interface LoginModalProps {
   onRegister: () => void;
 }
 
+function mapAuthError(error: unknown): string {
+  const code =
+    typeof error === "object" && error && "code" in error
+      ? String((error as { code: string }).code)
+      : "";
+  switch (code) {
+    case "auth/invalid-credential":
+    case "auth/wrong-password":
+    case "auth/user-not-found":
+      return "Incorrect email or password.";
+    case "auth/too-many-requests":
+      return "Too many attempts. Try again later.";
+    case "auth/invalid-email":
+      return "Enter a valid email address.";
+    default:
+      return error instanceof Error
+        ? error.message
+        : "Unable to sign in. Please try again.";
+  }
+}
+
 export default function LoginModal({
   open,
   onClose,
   onRegister,
 }: LoginModalProps) {
-  const { login } = useAuth();
+  const {
+    login,
+    loginDemo,
+    firebaseEnabled,
+    refreshEmailVerification,
+    resendVerificationEmail,
+    user,
+  } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<Role>("student");
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
   const emailRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -36,7 +66,7 @@ export default function LoginModal({
 
   if (!open) return null;
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
       setError("Please enter both your email and password.");
@@ -46,12 +76,57 @@ export default function LoginModal({
       setError("Enter a valid email address.");
       return;
     }
+
     setError(null);
-    // Demo auth: role is selected by the user. Replace with a real backend
-    // that returns the authenticated user's role.
-    login(email.trim(), role);
-    setPassword("");
-    onClose();
+    setInfo(null);
+    setBusy(true);
+    try {
+      if (firebaseEnabled) {
+        await login(email.trim(), password);
+        setPassword("");
+        setInfo(
+          "Signed in. If you haven't verified your email yet, check your inbox."
+        );
+      } else {
+        loginDemo(email.trim(), role);
+        setPassword("");
+        onClose();
+      }
+    } catch (err) {
+      setError(mapAuthError(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleRefreshVerification() {
+    setBusy(true);
+    setError(null);
+    try {
+      const verified = await refreshEmailVerification();
+      setInfo(
+        verified
+          ? "Email verified — you're all set."
+          : "Still unverified. Open the link in your email, then try again."
+      );
+    } catch (err) {
+      setError(mapAuthError(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleResend() {
+    setBusy(true);
+    setError(null);
+    try {
+      await resendVerificationEmail();
+      setInfo("Verification email resent.");
+    } catch (err) {
+      setError(mapAuthError(err));
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -78,15 +153,23 @@ export default function LoginModal({
 
         <div className="modal__brand">
           <span className="modal__mark" aria-hidden="true">
-            LA
+            HULT
           </span>
         </div>
         <h2 id="login-title" className="modal__title">
           Welcome back
         </h2>
         <p className="modal__subtitle">
-          Log in to your Ludwitt Academy workspace.
+          Log in to your Hult International Business School workspace.
         </p>
+
+        {!firebaseEnabled && (
+          <p className="modal__banner" role="status">
+            Firebase is not configured — demo login is active. Add{" "}
+            <code>.env.local</code> (see <code>.env.example</code>) for real
+            auth.
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="modal__form" noValidate>
           <div className="field">
@@ -114,9 +197,6 @@ export default function LoginModal({
               <label htmlFor="login-password" className="field__label">
                 Password
               </label>
-              <button type="button" className="modal__link modal__link-btn">
-                Forgot?
-              </button>
             </div>
             <div className="field__control">
               <input
@@ -143,21 +223,61 @@ export default function LoginModal({
                 value={role}
                 onChange={(e) => setRole(e.target.value as Role)}
               >
-                {(Object.keys(ROLE_LABELS) as Role[]).map((r) => (
-                  <option key={r} value={r}>
-                    {ROLE_LABELS[r]}
-                  </option>
-                ))}
+                <option value="student">Student</option>
+                <option value="professor">Professor</option>
+                <option value="admin">Site admin</option>
               </select>
             </div>
+            {firebaseEnabled && (
+              <p className="field__hint">
+                With Firebase enabled, access follows your account role in
+                Firestore (Student, Professor, or Site admin).
+              </p>
+            )}
           </div>
 
           {error && <p className="field__error modal__error">{error}</p>}
+          {info && <p className="modal__info">{info}</p>}
 
-          <button type="submit" className="btn btn-primary btn-block">
-            Log In
+          <button
+            type="submit"
+            className="btn btn-primary btn-block"
+            disabled={busy}
+          >
+            {busy ? "Signing in…" : "Log In"}
           </button>
         </form>
+
+        {firebaseEnabled && user && !user.emailVerified && (
+          <div className="modal__verify-actions">
+            <button
+              type="button"
+              className="btn btn-ghost btn-block"
+              disabled={busy}
+              onClick={handleRefreshVerification}
+            >
+              I've verified — refresh status
+            </button>
+            <button
+              type="button"
+              className="modal__link modal__link-btn"
+              disabled={busy}
+              onClick={handleResend}
+            >
+              Resend verification email
+            </button>
+          </div>
+        )}
+
+        {firebaseEnabled && user?.emailVerified && (
+          <button
+            type="button"
+            className="btn btn-primary btn-block"
+            onClick={onClose}
+          >
+            Continue to workspace
+          </button>
+        )}
 
         <p className="modal__footer">
           New to the cohort?{" "}

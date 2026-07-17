@@ -1,6 +1,7 @@
 export type View =
   | "overview"
-  | "curriculum"
+  | "peer-review"
+  | "chat"
   | "milestones"
   | "register"
   | "backoffice";
@@ -9,6 +10,7 @@ export type View =
 // navbar CTA / login modal, and "Back office" is added dynamically for staff.
 export const NAV_ITEMS: { label: string; view: View }[] = [
   { label: "Overview", view: "overview" },
-  { label: "Curriculum", view: "curriculum" },
   { label: "Milestones", view: "milestones" },
+  { label: "Peer Review", view: "peer-review" },
+  { label: "Chat", view: "chat" },
 ];

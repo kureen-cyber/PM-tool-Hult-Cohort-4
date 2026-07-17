@@ -59,6 +59,119 @@ const NUGGETS: Nugget[] = [
     text: "The bear believes in you. One more merged PR and the swarm wins.",
     attribution: "Ludwitt mascot",
   },
+  {
+    type: "quote",
+    text: "The only way to do great work is to love what you do.",
+    attribution: "Steve Jobs",
+  },
+  {
+    type: "meme",
+    text: "A programmer's spouse asks: \u201CBuy a loaf of bread, and if they have eggs, get a dozen.\u201D The programmer returns with 12 loaves of bread.",
+  },
+  {
+    type: "quote",
+    text: "Talk is cheap. Show me the code.",
+    attribution: "Linus Torvalds",
+  },
+  {
+    type: "meme",
+    text: "Debugging: being the detective in a crime movie where you are also the murderer.",
+  },
+  {
+    type: "quote",
+    text: "Code never lies; comments sometimes do.",
+    attribution: "Ron Jeffries",
+  },
+  {
+    type: "meme",
+    text: "My code doesn't work — I have no idea why. My code works — I have no idea why.",
+  },
+  {
+    type: "quote",
+    text: "Simplicity is the soul of efficiency.",
+    attribution: "Austin Freeman",
+  },
+  {
+    type: "meme",
+    text: "CSS: where you center a div in 5 seconds or 5 hours. There is no in-between.",
+  },
+  {
+    type: "quote",
+    text: "Make it work, make it right, make it fast.",
+    attribution: "Kent Beck",
+  },
+  {
+    type: "meme",
+    text: "Copy-pasting from Stack Overflow isn't a bug in your process — it's a dependency.",
+  },
+  {
+    type: "quote",
+    text: "The best error message is the one that never shows up.",
+    attribution: "Thomas Fuchs",
+  },
+  {
+    type: "meme",
+    text: "I don't always test my code. But when I do, I do it in production.",
+  },
+  {
+    type: "quote",
+    text: "Programs must be written for people to read, and only incidentally for machines to execute.",
+    attribution: "Harold Abelson",
+  },
+  {
+    type: "meme",
+    text: "\u201CIt's not a bug, it's an undocumented feature.\u201D — every changelog ever",
+  },
+  {
+    type: "quote",
+    text: "Learning never exhausts the mind.",
+    attribution: "Leonardo da Vinci",
+  },
+  {
+    type: "meme",
+    text: "Why do programmers prefer dark mode? Because light attracts bugs.",
+  },
+  {
+    type: "quote",
+    text: "Strive for progress, not perfection — every commit counts.",
+    attribution: "Grizzly wisdom",
+  },
+  {
+    type: "meme",
+    text: "A SQL query walks into a bar, goes up to two tables and asks: \u201CCan I join you?\u201D",
+  },
+  {
+    type: "quote",
+    text: "Success is the sum of small efforts, repeated day in and day out.",
+    attribution: "Robert Collier",
+  },
+  {
+    type: "meme",
+    text: "There are only 10 kinds of people: those who understand binary and those who don't.",
+  },
+  {
+    type: "quote",
+    text: "Whether you think you can or you think you can't, you're right.",
+    attribution: "Henry Ford",
+  },
+  {
+    type: "meme",
+    text: "Documentation is like a love letter you write to your future self.",
+  },
+  {
+    type: "quote",
+    text: "The expert in anything was once a beginner.",
+    attribution: "Helen Hayes",
+  },
+  {
+    type: "meme",
+    text: "To understand what recursion is, you must first understand recursion.",
+  },
+  {
+    type: "quote",
+    text: "Don't watch the clock; do what it does. Keep going.",
+    attribution: "Sam Levenson",
+  },
 ];
 
 const SHOW_AFTER_MS = 5000;

@@ -4,14 +4,19 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import type { View } from "./navigation";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
-import Features from "./components/Features";
 import Milestones from "./components/Milestones";
-import ProgressTracker from "./components/ProgressTracker";
+import PeerReview from "./components/PeerReview";
+import ProgressTracker, {
+  ProgressSteps,
+} from "./components/ProgressTracker";
 import Registration from "./components/Registration";
 import BackOffice from "./components/BackOffice";
 import Footer from "./components/Footer";
 import LoginModal from "./components/LoginModal";
 import MascotPopup from "./components/MascotPopup";
+import CourseCalendar from "./components/CourseCalendar";
+import CompletionCelebration from "./components/CompletionCelebration";
+import CohortChat from "./components/CohortChat";
 import "./App.css";
 
 function AppShell() {
@@ -31,7 +36,7 @@ function AppShell() {
   }, [view, isStaff]);
 
   const showProgressTop =
-    view === "overview" || view === "curriculum" || view === "milestones";
+    view === "overview" || view === "peer-review" || view === "milestones";
 
   return (
     <div className="app">
@@ -42,9 +47,26 @@ function AppShell() {
       />
       <main>
         {showProgressTop && <ProgressTracker />}
-        {view === "overview" && <Hero onNavigate={navigate} />}
-        {view === "curriculum" && <Features />}
-        {view === "milestones" && <Milestones />}
+        {view === "overview" && (
+          <>
+            <Hero onNavigate={navigate} />
+            <ProgressSteps />
+            <CourseCalendar />
+          </>
+        )}
+        {view === "peer-review" && (
+          <>
+            <ProgressSteps />
+            <PeerReview />
+          </>
+        )}
+        {view === "milestones" && (
+          <>
+            <ProgressSteps />
+            <Milestones />
+          </>
+        )}
+        {view === "chat" && <CohortChat />}
         {view === "register" && <Registration />}
         {view === "backoffice" && isStaff && <BackOffice />}
       </main>
@@ -58,6 +80,7 @@ function AppShell() {
         }}
       />
       <MascotPopup />
+      <CompletionCelebration />
     </div>
   );
 }
