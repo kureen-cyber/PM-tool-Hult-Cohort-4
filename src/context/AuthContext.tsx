@@ -22,6 +22,7 @@ import {
   getUserProfile,
   type UserProfile,
 } from "../lib/users";
+import { isCohortParticipantEmail } from "../data/cohort-roster";
 
 export type Role = "student" | "professor" | "admin";
 
@@ -50,8 +51,6 @@ interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   firebaseEnabled: boolean;
-  /** Demo-only login when Firebase is not configured. */
-  loginDemo: (email: string, role: Role) => void;
   login: (email: string, password: string) => Promise<void>;
   register: (input: RegisterInput) => Promise<AuthUser>;
   logout: () => Promise<void>;
@@ -62,29 +61,11 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const DEMO_STORAGE_KEY = "ludwitt-auth-demo";
-
 export const ROLE_LABELS: Record<Role, string> = {
   student: "Student",
   professor: "Professor",
   admin: "Site admin",
 };
-
-export const ROLE_OPTIONS: { value: Role; label: string }[] = [
-  { value: "student", label: "Student" },
-  { value: "professor", label: "Professor" },
-  { value: "admin", label: "Site admin" },
-];
-
-function loadDemoUser(): AuthUser | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(DEMO_STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as AuthUser) : null;
-  } catch {
-    return null;
-  }
-}
 
 function mapFirebaseUser(user: User, profile: UserProfile | null): AuthUser {
   const role = profile?.role ?? resolveAuthRole(user.email ?? "");
@@ -104,14 +85,13 @@ function mapFirebaseUser(user: User, profile: UserProfile | null): AuthUser {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() =>
-    isFirebaseConfigured ? null : loadDemoUser()
-  );
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(isFirebaseConfigured);
 
   useEffect(() => {
     if (!isFirebaseConfigured || !auth) {
       setLoading(false);
+      setUser(null);
       return;
     }
 
@@ -134,51 +114,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return unsubscribe;
   }, []);
 
-  useEffect(() => {
-    if (isFirebaseConfigured) return;
-    if (user) {
-      window.localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(user));
-    } else {
-      window.localStorage.removeItem(DEMO_STORAGE_KEY);
-    }
-  }, [user]);
-
-  const loginDemo = useCallback((email: string, role: Role) => {
-    if (isFirebaseConfigured) {
-      throw new Error("Demo login is disabled when Firebase is configured.");
-    }
-    setUser({
-      uid: `demo-${email}`,
-      email: email.trim().toLowerCase(),
-      displayName: email.trim(),
-      role,
-      emailVerified: true,
-    });
-  }, []);
-
   const login = useCallback(async (email: string, password: string) => {
     if (!isFirebaseConfigured || !auth) {
       throw new Error(
-        "Firebase is not configured. Add VITE_FIREBASE_* values to .env.local."
+        "Real participant login requires Firebase. Add VITE_FIREBASE_* values to .env.local."
+      );
+    }
+    const normalized = email.trim().toLowerCase();
+    if (!isCohortParticipantEmail(normalized)) {
+      throw new Error(
+        "This email is not on the cohort participant roster. Contact your professor if you believe this is an error."
       );
     }
     const credential = await signInWithEmailAndPassword(
       auth,
-      email.trim(),
+      normalized,
       password
     );
     const profile = await getUserProfile(credential.user.uid);
+    if (!profile) {
+      await signOut(auth);
+      throw new Error(
+        "No participant profile found for this account. Register with your cohort email first."
+      );
+    }
     setUser(mapFirebaseUser(credential.user, profile));
   }, []);
 
   const register = useCallback(async (input: RegisterInput) => {
     if (!isFirebaseConfigured || !auth) {
       throw new Error(
-        "Firebase is not configured. Add VITE_FIREBASE_* values to .env.local."
+        "Registration requires Firebase. Add VITE_FIREBASE_* values to .env.local."
       );
     }
 
     const email = input.email.trim().toLowerCase();
+    if (!isCohortParticipantEmail(email)) {
+      throw new Error(
+        "Only rostered cohort participant emails can register. Ask staff to add your email."
+      );
+    }
+
     const credential = await createUserWithEmailAndPassword(
       auth,
       email,
@@ -237,7 +213,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       loading,
       firebaseEnabled: isFirebaseConfigured,
-      loginDemo,
       login,
       register,
       logout,
@@ -248,7 +223,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [
       user,
       loading,
-      loginDemo,
       login,
       register,
       logout,

@@ -1,70 +1,76 @@
 # Hult International Business School · Developer Program
 
-A project management tool for running the **Forward Deployed Engineers** course.
-Built with a fresh, modern red & white design, a light/dark mode toggle, a
-student registration section, and a log in flow.
+A project management tool for running the **Forward Deployed Engineers** course
+(Hult Cohort 4). Participants manage projects and tasks, peer-review weekly
+work, cast votes, and track personal + cohort progress.
+
+## Production
+
+**Live deploy:** https://pm-tool-hult-cohort-4.vercel.app/
 
 ## Tech stack
 
 - [Vite](https://vitejs.dev/) + [React 18](https://react.dev/) + TypeScript
-- [Firebase](https://firebase.google.com/) Auth + Firestore (optional until `.env.local` is set)
+- [Firebase](https://firebase.google.com/) Auth + Firestore
 - CSS custom properties for theming (no CSS framework dependency)
+- Hosted on [Vercel](https://vercel.com/) (`vercel.json` SPA rewrites)
 
 ## Getting started
 
 ```bash
 npm install
 cp .env.example .env.local   # fill Firebase web config for real auth
-npm run dev
+npm run dev                  # http://localhost:5173
 ```
 
-Without Firebase env vars the app runs in **demo mode** (local-only auth).
-See [FIREBASE.md](FIREBASE.md) for Auth, email verification, staff roles, and
-Firestore rules.
+Firebase Auth is required for participant register/login (demo login is
+disabled). See [FIREBASE.md](FIREBASE.md) for setup, email verification, staff
+roles, and Firestore rules. Agent guidance: [AGENTS.md](AGENTS.md).
 
 ## Available scripts
 
-| Command           | Description                              |
-| ----------------- | ---------------------------------------- |
-| `npm run dev`     | Start the Vite dev server                |
-| `npm run build`   | Type-check and build for production      |
-| `npm run preview` | Preview the production build locally     |
+| Command             | Description                          |
+| ------------------- | ------------------------------------ |
+| `npm run dev`       | Start the Vite dev server (port 5173)|
+| `npm run build`     | Type-check and build for production  |
+| `npm run preview`   | Preview the production build locally |
+| `npm run typecheck` | TypeScript only                      |
 
 ## Features
 
-- **Red & white theme** with a fresh, modern feel.
-- **Light / dark mode toggle** in the navbar. The choice is saved to
-  `localStorage` and respects the OS `prefers-color-scheme` on first visit.
-- **Registration section** with a full student application form (contact info,
-  experience, tech stack, cohort track, motivation) plus inline validation and a
-  success confirmation state.
-- **Log In** button that opens an accessible modal dialog (closes on `Esc` /
-  backdrop click).
-- Responsive landing content: hero with a live-style sprint board, curriculum
-  feature grid, and footer.
+- **Projects & tasks** — create / edit / archive projects; tasks with title,
+  description, status (≥3), assignee; filters by project / status / assignee
+- **Firebase Auth** — real email/password accounts that scale across the cohort
+- **Peer Review** — technical reviews per weekly submission + colleague vote dropdown
+- **Progress** — personal and cohort race tracks across tabs
+- **Settings** + floating **AI assistant**
+- **Light / dark** theme toggle (persisted)
 
 ## Project structure
 
 ```
 src/
-├─ main.tsx                # App entry, wraps app in ThemeProvider
-├─ App.tsx                 # Layout + login modal state
-├─ index.css               # Design tokens (light/dark) + base styles
+├─ main.tsx
+├─ App.tsx
+├─ navigation.ts
+├─ index.css
+├─ context/          # Auth, Progress, Pm
+├─ lib/              # firebase, users, pm
 ├─ theme/
-│  └─ ThemeContext.tsx     # Theme state, persistence, system preference
-└─ components/
-   ├─ Navbar.tsx           # Brand, nav links, theme toggle, Log In / Register
-   ├─ ThemeToggle.tsx      # Light/dark switch
-   ├─ Hero.tsx             # Landing hero + sprint board preview
-   ├─ Features.tsx         # Curriculum / capabilities grid
-   ├─ Registration.tsx     # Student registration form + validation
-   ├─ LoginModal.tsx       # Log in dialog
-   └─ Footer.tsx
+└─ components/       # ProjectsBoard, PeerReview, Settings, AiAssistant, …
 ```
 
-## Wiring up a backend
+## Known bugs / limitations
 
-The registration form and login modal are UI-complete with client-side
-validation. To connect them to real services, replace the placeholder logic in
-`Registration.tsx` (`handleSubmit`) and `LoginModal.tsx` (`handleSubmit`) with
-calls to your API.
+- **No automated test suite** — rely on `npm run build` and manual QA.
+- **Cohort chat & some progress data** still use `localStorage` on the device;
+  multi-user sync for chat/votes is not fully on Firestore yet.
+- **Large JS bundle** (~700 kB) from the Firebase client SDK; no code-splitting
+  yet (Vite build warns about chunk size).
+- **Deep links / shareable paths** are limited: navigation is in-app view state
+  (not URL routes). `vercel.json` rewrites prevent static 404s on refresh of
+  `/index.html` hosts, but there are no per-tab URL paths yet.
+- **Optional AI cloud replies** need `VITE_OPENAI_API_KEY`; without it the
+  assistant uses local heuristics only.
+- **Staff elevation** depends on `VITE_STAFF_EMAILS` / `VITE_ADMIN_EMAILS` or
+  manual Firestore `users/{uid}.role` edits — self-serve role picking is disabled.

@@ -55,6 +55,12 @@ interface ProgressContextValue {
   totalSteps: number;
   completedSteps: number;
   percentComplete: number;
+  /** Shared cohort progress (registration + weeks with cohort activity). */
+  cohortRegisteredStep: boolean;
+  cohortSubmittedCount: number;
+  cohortCompletedSteps: number;
+  cohortPercentComplete: number;
+  cohortSize: number;
 }
 
 const ProgressContext = createContext<ProgressContextValue | undefined>(
@@ -66,6 +72,7 @@ const KEYS = {
   submissions: "ludwitt-submissions",
   votes: "ludwitt-votes",
   myVotes: "ludwitt-my-votes",
+  cohortWeeks: "ludwitt-cohort-weeks",
 };
 
 function load<T>(key: string, fallback: T): T {
@@ -98,6 +105,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const [myVotes, setMyVotes] = useState<Record<string, string>>(() =>
     load<Record<string, string>>(KEYS.myVotes, {})
   );
+  const [cohortWeeks, setCohortWeeks] = useState<string[]>(() =>
+    load<string[]>(KEYS.cohortWeeks, [])
+  );
   const myVotesRef = useRef(myVotes);
   useEffect(() => {
     myVotesRef.current = myVotes;
@@ -118,6 +128,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     window.localStorage.setItem(KEYS.myVotes, JSON.stringify(myVotes));
   }, [myVotes]);
+  useEffect(() => {
+    window.localStorage.setItem(KEYS.cohortWeeks, JSON.stringify(cohortWeeks));
+  }, [cohortWeeks]);
 
   const addRegistration = useCallback((data: RegistrationInput) => {
     const registrant: Registrant = {
@@ -156,6 +169,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           submittedAt: new Date().toISOString(),
         },
       }));
+      setCohortWeeks((prev) =>
+        prev.includes(week) ? prev : [...prev, week]
+      );
     },
     []
   );
@@ -180,6 +196,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       weekTally[participant] = (weekTally[participant] ?? 0) + 1;
       return { ...prevVotes, [week]: weekTally };
     });
+    setCohortWeeks((prev) =>
+      prev.includes(week) ? prev : [...prev, week]
+    );
   }, []);
 
   const participants = useMemo(() => {
@@ -198,6 +217,29 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const completedSteps = (registeredStep ? 1 : 0) + submittedCount;
   const percentComplete = Math.round((completedSteps / totalSteps) * 100);
 
+  const cohortSize = Math.max(
+    SEED_PARTICIPANTS.length,
+    registrations.length,
+    participants.length,
+    1
+  );
+  const cohortRegisteredStep = registrations.length > 0;
+  const activeCohortWeeks = new Set<string>([
+    ...cohortWeeks,
+    ...Object.keys(submissions),
+    ...Object.keys(votes).filter((week) =>
+      Object.values(votes[week] ?? {}).some((count) => count > 0)
+    ),
+  ]);
+  const cohortSubmittedCount = MILESTONES.filter((m) =>
+    activeCohortWeeks.has(m.week)
+  ).length;
+  const cohortCompletedSteps =
+    (cohortRegisteredStep ? 1 : 0) + cohortSubmittedCount;
+  const cohortPercentComplete = Math.round(
+    (cohortCompletedSteps / totalSteps) * 100
+  );
+
   const value = useMemo<ProgressContextValue>(
     () => ({
       registrations,
@@ -215,6 +257,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       totalSteps,
       completedSteps,
       percentComplete,
+      cohortRegisteredStep,
+      cohortSubmittedCount,
+      cohortCompletedSteps,
+      cohortPercentComplete,
+      cohortSize,
     }),
     [
       registrations,
@@ -232,6 +279,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       totalSteps,
       completedSteps,
       percentComplete,
+      cohortRegisteredStep,
+      cohortSubmittedCount,
+      cohortCompletedSteps,
+      cohortPercentComplete,
+      cohortSize,
     ]
   );
 

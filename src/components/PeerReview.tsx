@@ -59,10 +59,9 @@ export default function PeerReview() {
             <span className="eyebrow">Technical feedback</span>
             <h2 className="section-title">Peer Review</h2>
             <p className="section-lead">
-              One card per weekly deliverable. Every participant in the cohort
-              can add a technical analysis review — all feedback collates under
-              that week's submission, and everyone can see where each
-              colleague's submission lives.
+              One card per weekly deliverable. Add a technical analysis review,
+              then cast one vote for a colleague’s project from the dropdown
+              under each submission.
             </p>
           </div>
           <div className="peer-review__count">
@@ -100,9 +99,17 @@ function SubmissionCard({
   defaultReviewer,
   onAddReview,
 }: SubmissionCardProps) {
-  const { submissions, participants } = useProgress();
+  const {
+    submissions,
+    participants,
+    votes,
+    myVotes,
+    castVote,
+  } = useProgress();
+  const { user } = useAuth();
   const [reviewer, setReviewer] = useState(defaultReviewer);
   const [comment, setComment] = useState("");
+  const [selectedVote, setSelectedVote] = useState("");
 
   const submission = submissions[milestone.week];
   const cardId = milestone.week.replace(/\s+/g, "-").toLowerCase();
@@ -110,11 +117,27 @@ function SubmissionCard({
     b.createdAt.localeCompare(a.createdAt)
   );
 
+  const myVote = myVotes[milestone.week];
+  const weekVotes = votes[milestone.week] ?? {};
+  const leaderboard = Object.entries(weekVotes).sort((a, b) => b[1] - a[1]);
+  const totalVotes = leaderboard.reduce((sum, [, count]) => sum + count, 0);
+
+  const selfName = user?.displayName?.trim() || "";
+  const colleagueOptions = participants.filter(
+    (name) => !selfName || name.toLowerCase() !== selfName.toLowerCase()
+  );
+
   function submitReview(event: FormEvent) {
     event.preventDefault();
     if (!reviewer.trim() || !comment.trim()) return;
     onAddReview(milestone.week, reviewer, comment);
     setComment("");
+  }
+
+  function submitVote() {
+    if (!selectedVote || myVote) return;
+    castVote(milestone.week, selectedVote);
+    setSelectedVote("");
   }
 
   return (
@@ -143,8 +166,8 @@ function SubmissionCard({
           )
         ) : (
           <span>
-            The submission for {milestone.week} will appear here once it's
-            turned in on the Milestones tab.
+            The submission for {milestone.week} will appear here once a
+            colleague turns it in.
           </span>
         )}
         {submission && (
@@ -183,6 +206,64 @@ function SubmissionCard({
           Add technical review
         </button>
       </form>
+
+      <div className="peer-vote">
+        <h4 className="peer-vote__title">
+          Cast your vote — who nailed {milestone.week}?
+        </h4>
+        <p className="peer-vote__lead">
+          Pick one colleague’s project from the dropdown. One vote per person
+          for this week.
+        </p>
+        {myVote ? (
+          <p className="peer-vote__done" role="status">
+            You voted for <strong>{myVote}</strong>. Thanks — one vote per
+            person!
+          </p>
+        ) : (
+          <div className="peer-vote__row">
+            <label htmlFor={`${cardId}-vote`} className="visually-hidden">
+              Colleague to vote for
+            </label>
+            <select
+              id={`${cardId}-vote`}
+              className="peer-vote__select"
+              value={selectedVote}
+              onChange={(e) => setSelectedVote(e.target.value)}
+            >
+              <option value="">Select a colleague…</option>
+              {colleagueOptions.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={!selectedVote}
+              onClick={submitVote}
+            >
+              Cast vote
+            </button>
+          </div>
+        )}
+        {leaderboard.length > 0 && (
+          <ul className="peer-vote__board" aria-label="Vote tally">
+            {leaderboard.map(([name, count]) => (
+              <li key={name}>
+                <span>{name}</span>
+                <strong>
+                  {count} {count === 1 ? "vote" : "votes"}
+                  {totalVotes > 0
+                    ? ` · ${Math.round((count / totalVotes) * 100)}%`
+                    : ""}
+                </strong>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <div className="submission-card__reviews">
         <span className="submission-card__reviews-title">

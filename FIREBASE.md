@@ -1,6 +1,6 @@
 # Firebase setup — Hult Developer Program PM Tool
 
-This app uses **Firebase Authentication** (email/password + email verification) and **Cloud Firestore** (user profiles / roles).
+This app uses **Firebase Authentication** (email/password + email verification) and **Cloud Firestore** (user profiles / roles, plus PM projects & tasks sync).
 
 ## 1. Create a Firebase project
 
@@ -47,6 +47,17 @@ Staff (`professor` / `admin`) see the **Back office** tab after login.
 
 On register, Firebase sends a real verification email. The user must click the link, then return and click **I've verified — refresh status** (or log in again). Unverified accounts can sign in but are prompted to verify; chat and staff features expect a verified session.
 
-## 6. Demo mode (no Firebase)
+## 6. PM projects & tasks sync
 
-If `.env.local` is missing or incomplete, the app runs in **local demo mode**: auth/roles stay in-browser only (previous behaviour). The login and registration screens show a banner when Firebase is not configured.
+When Firebase is configured **and** a user is signed in, the Projects board syncs live to:
+
+| Collection | Purpose |
+|------------|---------|
+| `pmProjects/{id}` | User-created projects (create / edit / archive) |
+| `pmTasks/{id}` | Tasks (title, description, status, assignee, priority, dueDate, projectId) |
+
+**Auth:** Demo login is disabled. Participants register and sign in with real Firebase email/password accounts. Optional `VITE_COHORT_EMAILS` restrict who may register/login. Redeploy `firestore.rules` after pulling so clients can read/write these collections.
+
+## 7. Demo mode (no Firebase)
+
+If `.env.local` is missing or incomplete, the app cannot sign participants in. Configure Firebase before cohort use.

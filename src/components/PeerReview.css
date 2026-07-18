@@ -145,6 +145,90 @@ html[data-theme="dark"] .submission-card__status.is-ready {
   margin-top: 4px;
 }
 
+.peer-vote {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.peer-vote__title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+.peer-vote__lead {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+}
+.peer-vote__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.peer-vote__select {
+  flex: 1;
+  min-width: 180px;
+  padding: 10px 12px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  font: inherit;
+  font-size: 0.9rem;
+}
+.peer-vote__select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
+}
+.peer-vote__done {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.peer-vote__board {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.peer-vote__board li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 0.84rem;
+}
+.peer-vote__board strong {
+  color: var(--accent);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .submission-card__reviews {
   margin-top: 16px;
   padding-top: 14px;

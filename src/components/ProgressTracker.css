@@ -4,7 +4,7 @@
   justify-content: space-between;
   gap: 24px;
   flex-wrap: wrap;
-  margin-bottom: 44px;
+  margin-bottom: 36px;
 }
 .progress-tracker__head .section-lead {
   margin-top: 10px;
@@ -16,15 +16,51 @@
   text-align: right;
 }
 .progress-tracker__pct {
-  font-size: 3rem;
+  font-size: 2.4rem;
   font-weight: 800;
   line-height: 1;
   color: var(--accent);
 }
+.progress-tracker__pct--cohort {
+  color: #1b7a41;
+}
+html[data-theme="dark"] .progress-tracker__pct--cohort {
+  color: #57c680;
+}
 .progress-tracker__pct-label {
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   color: var(--text-muted);
   margin-top: 4px;
+}
+
+.progress-tracker__lanes {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.progress-lane__label {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.progress-lane__eyebrow {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.progress-lane__title {
+  margin: 0;
+  font-size: 1.15rem;
 }
 
 /* Race track */
@@ -33,6 +69,9 @@
   align-items: center;
   gap: 8px;
   margin-bottom: 0;
+}
+.race--cohort .race__fill {
+  background: linear-gradient(90deg, #1b7a41, #57c680);
 }
 .race__track {
   position: relative;
@@ -171,6 +210,9 @@
   text-transform: uppercase;
   color: var(--accent);
 }
+.race--cohort .race__finish-label {
+  color: #1b7a41;
+}
 .race__finish--done .race__finish-label {
   color: #1b7a41;
 }
@@ -277,5 +319,8 @@ html[data-theme="dark"] .prog-item__status.is-done {
   }
   .race__quote {
     font-size: 0.78rem;
+  }
+  .progress-tracker__pct {
+    font-size: 2rem;
   }
 }

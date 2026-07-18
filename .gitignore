@@ -5,6 +5,9 @@
 # Separate cohort-program working clone (not part of this app)
 hult-cohort-program/
 
+# Accidental nested clone / duplicate tree
+PM-tool-Hult-Cohort-4/
+
 node_modules
 dist
 dist-ssr
@@ -27,3 +30,5 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+
+.vercel

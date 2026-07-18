@@ -36,9 +36,9 @@ export default function Hero({ onNavigate }: HeroProps) {
             <button
               type="button"
               className="btn btn-ghost"
-              onClick={() => onNavigate("peer-review")}
+              onClick={() => onNavigate("projects")}
             >
-              Browse peer reviews
+              Open projects
             </button>
           </div>
           <dl className="hero__stats">

@@ -8,6 +8,12 @@
 .milestones__head .section-lead {
   margin-inline: auto;
 }
+.milestones__search-hint {
+  margin-top: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent);
+}
 
 .milestones__list {
   display: flex;

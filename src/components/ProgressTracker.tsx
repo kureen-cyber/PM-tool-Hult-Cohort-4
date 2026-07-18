@@ -15,20 +15,60 @@ const STEP_QUOTES = [
   "Your potential is limitless",
 ];
 
+function RaceTrack({
+  percent,
+  done,
+  runnerEmoji,
+  accentClass,
+}: {
+  percent: number;
+  done: boolean;
+  runnerEmoji: string;
+  accentClass: string;
+}) {
+  return (
+    <div className={`race ${accentClass}`}>
+      <div className="race__track">
+        <div className="race__fill" style={{ width: `${percent}%` }} />
+        <div
+          className="race__runner"
+          style={{ left: `${percent}%` }}
+          aria-hidden="true"
+        >
+          <span className="race__runner-emoji">{runnerEmoji}</span>
+        </div>
+        <span className="race__start" aria-hidden="true">
+          Start
+        </span>
+      </div>
+
+      <div className={`race__finish ${done ? "race__finish--done" : ""}`}>
+        <div className="race__flag" aria-hidden="true" />
+        <BearMascot size={72} waving className="race__bear" />
+        <span className="race__finish-label">Finish</span>
+      </div>
+    </div>
+  );
+}
+
 export default function ProgressTracker() {
   const {
     submittedCount,
     percentComplete,
     completedSteps,
     totalSteps,
+    cohortPercentComplete,
+    cohortCompletedSteps,
+    cohortSubmittedCount,
+    cohortSize,
   } = useProgress();
 
-  const done = percentComplete >= 100;
+  const personalDone = percentComplete >= 100;
+  const cohortDone = cohortPercentComplete >= 100;
   const stepQuote =
     completedSteps > 0
       ? STEP_QUOTES[Math.min(completedSteps, STEP_QUOTES.length) - 1]
       : null;
-  // Keep the quote from spilling past the track's edges.
   const quotePosition = Math.min(Math.max(percentComplete, 9), 91);
 
   return (
@@ -39,60 +79,74 @@ export default function ProgressTracker() {
             <span className="eyebrow">Cohort 4 · Live progress</span>
             <h2 className="section-title">Race to the finish line</h2>
             <p className="section-lead">
-              {done
-                ? "Incredible — every project is in. The grizzly is proud of the whole swarm!"
-                : "Every submitted project moves you closer. The grizzly is waiting at the finish line, cheering you on."}
+              {personalDone && cohortDone
+                ? "Incredible — you and the cohort have crossed the finish line!"
+                : "Your personal track runs beside the cohort track — every registration, submission, and peer vote moves the swarm forward."}
             </p>
           </div>
-          <div className="progress-tracker__stat">
-            <span className="progress-tracker__pct">{percentComplete}%</span>
-            <span className="progress-tracker__pct-label">
-              {completedSteps} of {totalSteps} steps · {submittedCount}/6
-              projects submitted
-            </span>
-          </div>
         </div>
 
-        {/* Race track */}
-        <div className="race">
-          <div className="race__track">
-            <div
-              className="race__fill"
-              style={{ width: `${percentComplete}%` }}
+        <div className="progress-tracker__lanes">
+          <div className="progress-lane">
+            <div className="progress-lane__label">
+              <div>
+                <span className="progress-lane__eyebrow">You</span>
+                <h3 className="progress-lane__title">Personal progress</h3>
+              </div>
+              <div className="progress-tracker__stat">
+                <span className="progress-tracker__pct">{percentComplete}%</span>
+                <span className="progress-tracker__pct-label">
+                  {completedSteps} of {totalSteps} steps · {submittedCount}/6
+                  projects
+                </span>
+              </div>
+            </div>
+            <RaceTrack
+              percent={percentComplete}
+              done={personalDone}
+              runnerEmoji="🚀"
+              accentClass="race--personal"
             />
-            <div
-              className="race__runner"
-              style={{ left: `${percentComplete}%` }}
-              aria-hidden="true"
-            >
-              <span className="race__runner-emoji">🚀</span>
-            </div>
-            <span className="race__start" aria-hidden="true">
-              Start
-            </span>
+            {stepQuote && (
+              <div className="race__quote-row" aria-live="polite">
+                <div className="race__quote-lane">
+                  <span
+                    key={completedSteps}
+                    className="race__quote"
+                    style={{ left: `${quotePosition}%` }}
+                  >
+                    “{stepQuote}”
+                  </span>
+                </div>
+                <div className="race__quote-spacer" aria-hidden="true" />
+              </div>
+            )}
           </div>
 
-          <div className={`race__finish ${done ? "race__finish--done" : ""}`}>
-            <div className="race__flag" aria-hidden="true" />
-            <BearMascot size={92} waving className="race__bear" />
-            <span className="race__finish-label">Finish</span>
+          <div className="progress-lane">
+            <div className="progress-lane__label">
+              <div>
+                <span className="progress-lane__eyebrow">Cohort · {cohortSize}</span>
+                <h3 className="progress-lane__title">Cohort progress</h3>
+              </div>
+              <div className="progress-tracker__stat">
+                <span className="progress-tracker__pct progress-tracker__pct--cohort">
+                  {cohortPercentComplete}%
+                </span>
+                <span className="progress-tracker__pct-label">
+                  {cohortCompletedSteps} of {totalSteps} steps ·{" "}
+                  {cohortSubmittedCount}/6 weeks active
+                </span>
+              </div>
+            </div>
+            <RaceTrack
+              percent={cohortPercentComplete}
+              done={cohortDone}
+              runnerEmoji="🐻"
+              accentClass="race--cohort"
+            />
           </div>
         </div>
-
-        {stepQuote && (
-          <div className="race__quote-row" aria-live="polite">
-            <div className="race__quote-lane">
-              <span
-                key={completedSteps}
-                className="race__quote"
-                style={{ left: `${quotePosition}%` }}
-              >
-                “{stepQuote}”
-              </span>
-            </div>
-            <div className="race__quote-spacer" aria-hidden="true" />
-          </div>
-        )}
       </div>
     </section>
   );

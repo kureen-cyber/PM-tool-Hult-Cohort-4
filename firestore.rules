@@ -42,5 +42,14 @@ service cloud.firestore {
         && request.resource.data.email == request.auth.token.email;
       allow update, delete: if isAdmin();
     }
+
+    // Cohort PM board — any signed-in user can collaborate.
+    match /pmProjects/{projectId} {
+      allow read, write: if signedIn();
+    }
+
+    match /pmTasks/{taskId} {
+      allow read, write: if signedIn();
+    }
   }
 }

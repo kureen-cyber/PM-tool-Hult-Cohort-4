@@ -94,6 +94,32 @@
   gap: 12px;
 }
 
+.navbar__search {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    color 0.2s ease;
+}
+.navbar__search:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.navbar__search span[aria-hidden="true"] {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
 .navbar__user {
   display: flex;
   align-items: center;
@@ -165,6 +191,9 @@
 
 @media (max-width: 520px) {
   .brand__sub {
+    display: none;
+  }
+  .navbar__search-label {
     display: none;
   }
 }

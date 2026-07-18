@@ -1,11 +1,14 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useProgress, type Registrant } from "../context/ProgressContext";
+import { useAuth } from "../context/AuthContext";
 import "./Registration.css";
 
 interface FormState {
   firstName: string;
   lastName: string;
   email: string;
+  password: string;
+  confirmPassword: string;
   phone: string;
   country: string;
   timezone: string;
@@ -25,6 +28,8 @@ const INITIAL: FormState = {
   firstName: "",
   lastName: "",
   email: "",
+  password: "",
+  confirmPassword: "",
   phone: "",
   country: "",
   timezone: "",
@@ -62,11 +67,14 @@ const TIMEZONE_OPTIONS = [
 
 export default function Registration() {
   const { addRegistration, verifyEmail } = useProgress();
+  const { register, firebaseEnabled, refreshEmailVerification } = useAuth();
   const [form, setForm] = useState<FormState>(INITIAL);
   const [errors, setErrors] = useState<Errors>({});
   const [registrant, setRegistrant] = useState<Registrant | null>(null);
   const [verified, setVerified] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -82,6 +90,12 @@ export default function Registration() {
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email)) {
       next.email = "Enter a valid email address.";
     }
+    if (!state.password || state.password.length < 8) {
+      next.password = "Password must be at least 8 characters.";
+    }
+    if (state.confirmPassword !== state.password) {
+      next.confirmPassword = "Passwords do not match.";
+    }
     if (state.phone && !/^[+()\-\s\d]{7,}$/.test(state.phone)) {
       next.phone = "Enter a valid phone number.";
     }
@@ -95,11 +109,35 @@ export default function Registration() {
     return next;
   }
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    setSubmitError(null);
     const validation = validate(form);
     setErrors(validation);
-    if (Object.keys(validation).length === 0) {
+    if (Object.keys(validation).length > 0) {
+      const firstError = Object.keys(validation)[0];
+      document.getElementById(`field-${firstError}`)?.focus();
+      return;
+    }
+    if (!firebaseEnabled) {
+      setSubmitError(
+        "Firebase is required for real participant registration. Add VITE_FIREBASE_* to .env.local."
+      );
+      return;
+    }
+
+    setBusy(true);
+    try {
+      await register({
+        email: form.email.trim(),
+        password: form.password,
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        programRole: form.currentRole || "Student",
+        country: form.country.trim(),
+        experience: form.experience,
+        primaryStack: form.primaryStack.trim(),
+      });
       const created = addRegistration({
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
@@ -111,9 +149,20 @@ export default function Registration() {
       });
       setRegistrant(created);
       window.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      const firstError = Object.keys(validation)[0];
-      document.getElementById(`field-${firstError}`)?.focus();
+    } catch (err) {
+      const code =
+        typeof err === "object" && err && "code" in err
+          ? String((err as { code: string }).code)
+          : "";
+      if (code === "auth/email-already-in-use") {
+        setSubmitError("That email already has an account. Log in instead.");
+      } else {
+        setSubmitError(
+          err instanceof Error ? err.message : "Registration failed."
+        );
+      }
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -125,7 +174,16 @@ export default function Registration() {
     setEmailOpen(false);
   }
 
-  function handleVerify() {
+  async function handleVerify() {
+    try {
+      const ok = await refreshEmailVerification();
+      if (ok) {
+        setVerified(true);
+        return;
+      }
+    } catch {
+      // fall through to local token verify for progress step
+    }
     if (registrant && verifyEmail(registrant.verifyToken)) {
       setVerified(true);
     }
@@ -276,7 +334,7 @@ export default function Registration() {
 
             <Field
               id="field-email"
-              label="Email address"
+              label="Cohort email"
               required
               error={errors.email}
             >
@@ -286,7 +344,39 @@ export default function Registration() {
                 autoComplete="email"
                 value={form.email}
                 onChange={(e) => update("email", e.target.value)}
-                placeholder="ada@example.com"
+                placeholder="you@hult.edu"
+              />
+            </Field>
+
+            <Field
+              id="field-password"
+              label="Password"
+              required
+              error={errors.password}
+            >
+              <input
+                id="field-password"
+                type="password"
+                autoComplete="new-password"
+                value={form.password}
+                onChange={(e) => update("password", e.target.value)}
+                placeholder="At least 8 characters"
+              />
+            </Field>
+
+            <Field
+              id="field-confirmPassword"
+              label="Confirm password"
+              required
+              error={errors.confirmPassword}
+            >
+              <input
+                id="field-confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                value={form.confirmPassword}
+                onChange={(e) => update("confirmPassword", e.target.value)}
+                placeholder="Repeat password"
               />
             </Field>
 
@@ -455,9 +545,20 @@ export default function Registration() {
             </span>
           </label>
           {errors.agree && <p className="field__error">{errors.agree}</p>}
+          {submitError && <p className="field__error">{submitError}</p>}
+          {!firebaseEnabled && (
+            <p className="field__error">
+              Firebase is not configured — real participant accounts cannot be
+              created until <code>.env.local</code> is filled in.
+            </p>
+          )}
 
-          <button type="submit" className="btn btn-primary btn-block reg-submit">
-            Submit registration
+          <button
+            type="submit"
+            className="btn btn-primary btn-block reg-submit"
+            disabled={busy || !firebaseEnabled}
+          >
+            {busy ? "Creating account…" : "Submit registration"}
           </button>
         </form>
       </div>

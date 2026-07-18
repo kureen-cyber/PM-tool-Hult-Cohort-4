@@ -1,0 +1,113 @@
+.ai-assistant {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.ai-assistant__fab {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+}
+
+.ai-assistant__fab:hover {
+  background: var(--accent-hover);
+}
+
+.ai-assistant__panel {
+  width: min(360px, calc(100vw - 32px));
+  height: min(480px, 70vh);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.ai-assistant__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--accent-soft);
+}
+
+.ai-assistant__head strong {
+  display: block;
+}
+
+.ai-assistant__head span {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.ai-assistant__close {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ai-assistant__messages {
+  flex: 1;
+  overflow: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ai-bubble {
+  max-width: 92%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+
+.ai-bubble--assistant {
+  align-self: flex-start;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.ai-bubble--user {
+  align-self: flex-end;
+  background: var(--accent);
+  color: #fff;
+}
+
+.ai-assistant__form {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.ai-assistant__form input {
+  flex: 1;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  padding: 10px 12px;
+  font: inherit;
+}

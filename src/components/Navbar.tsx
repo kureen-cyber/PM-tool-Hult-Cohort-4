@@ -8,12 +8,14 @@ interface NavbarProps {
   activeView: View;
   onNavigate: (view: View) => void;
   onLoginClick: () => void;
+  onSearchClick: () => void;
 }
 
 export default function Navbar({
   activeView,
   onNavigate,
   onLoginClick,
+  onSearchClick,
 }: NavbarProps) {
   const { user, logout, isStaff } = useAuth();
   const [scrolled, setScrolled] = useState(false);
@@ -73,6 +75,15 @@ export default function Navbar({
         </nav>
 
         <div className="navbar__actions">
+          <button
+            type="button"
+            className="navbar__search"
+            onClick={onSearchClick}
+            aria-label="Search"
+          >
+            <span aria-hidden="true">⌕</span>
+            <span className="navbar__search-label">Search</span>
+          </button>
           <ThemeToggle />
           {user ? (
             <div className="navbar__user">
