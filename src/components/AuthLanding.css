@@ -1,0 +1,118 @@
+.auth-landing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, var(--accent-soft), transparent),
+    var(--bg);
+}
+
+.auth-landing__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.auth-landing__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-landing__mark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  box-shadow: 0 8px 20px var(--ring);
+}
+
+.auth-landing__name {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.auth-landing__sub {
+  margin: 2px 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.auth-landing__main {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px 48px;
+}
+
+.auth-landing__card {
+  width: min(480px, 100%);
+  margin-top: 8vh;
+  padding: 36px 32px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-lg);
+}
+
+.auth-landing__card h1 {
+  margin: 16px 0 12px;
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  line-height: 1.2;
+}
+
+.auth-landing__card p {
+  color: var(--text-muted);
+  margin: 0 0 28px;
+  font-size: 1.02rem;
+}
+
+.auth-landing__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.auth-landing__register {
+  width: min(960px, 100%);
+}
+
+.auth-landing__back {
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  margin: 0 0 8px 8px;
+  cursor: pointer;
+  padding: 8px 4px;
+}
+
+.auth-landing__back:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 560px) {
+  .auth-landing__card {
+    margin-top: 4vh;
+    padding: 28px 22px;
+  }
+  .auth-landing__actions {
+    flex-direction: column;
+  }
+  .auth-landing__actions .btn {
+    width: 100%;
+  }
+}

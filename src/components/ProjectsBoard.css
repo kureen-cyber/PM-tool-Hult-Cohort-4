@@ -175,6 +175,12 @@ html[data-theme="dark"] .pm-priority--medium {
   margin: 0 0 14px;
 }
 
+.pm-project-list__hint {
+  margin: -6px 0 14px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
 .pm-project-list {
   margin-bottom: 32px;
 }

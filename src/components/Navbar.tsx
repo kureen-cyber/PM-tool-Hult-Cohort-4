@@ -7,14 +7,12 @@ import "./Navbar.css";
 interface NavbarProps {
   activeView: View;
   onNavigate: (view: View) => void;
-  onLoginClick: () => void;
   onSearchClick: () => void;
 }
 
 export default function Navbar({
   activeView,
   onNavigate,
-  onLoginClick,
   onSearchClick,
 }: NavbarProps) {
   const { user, logout, isStaff } = useAuth();
@@ -100,22 +98,7 @@ export default function Navbar({
                 Log Out
               </button>
             </div>
-          ) : (
-            <button
-              type="button"
-              className="btn btn-ghost"
-              onClick={onLoginClick}
-            >
-              Log In
-            </button>
-          )}
-          <button
-            type="button"
-            className="btn btn-primary navbar__cta"
-            onClick={() => go("register")}
-          >
-            Register
-          </button>
+          ) : null}
           <button
             type="button"
             className="navbar__burger"

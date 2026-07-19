@@ -57,7 +57,7 @@ function buildLocalReply(
   }
 
   if (/login|auth|firebase|sign in/.test(q)) {
-    return "Sign in with your real cohort email and password (Firebase Auth). Demo login is disabled. Staff can optionally set VITE_COHORT_EMAILS to restrict who may register.";
+    return "Sign in with your email and password (Firebase Auth). Demo login is disabled.";
   }
 
   return `I can help with PM workflows on this board. You currently have ${ctx.projectCount} project(s) and ${open.length} open task(s). Try asking: “What should I work on next?”, “How do I archive a project?”, or “How do filters work?”`;

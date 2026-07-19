@@ -1,10 +1,10 @@
+import { useMemo } from "react";
 import BearMascot from "./BearMascot";
-import { MILESTONES } from "../data/milestones";
+import { useAuth } from "../context/AuthContext";
+import { usePm } from "../context/PmContext";
 import { useProgress } from "../context/ProgressContext";
 import "./ProgressTracker.css";
 
-// One quote per completed step (registration + the six weekly projects),
-// shown under the progress bar at the runner's current position.
 const STEP_QUOTES = [
   "Keep moving forward",
   "Success starts with courage",
@@ -51,25 +51,86 @@ function RaceTrack({
   );
 }
 
+/** Personal bar: login/registration floor + PM task completion (+ weekly submits). */
+function usePersonalProgressPercent() {
+  const { user } = useAuth();
+  const { registeredStep, submittedCount, totalSteps } = useProgress();
+  const { projects, tasks } = usePm();
+
+  return useMemo(() => {
+    if (!user) {
+      return {
+        percent: 0,
+        completedSteps: 0,
+        totalSteps,
+        label: "Sign in to start your race",
+      };
+    }
+
+    const activeProjects = projects.filter((project) => !project.archived);
+    let taskDone = 0;
+    let taskTotal = 0;
+    for (const project of activeProjects) {
+      const projectTasks = tasks.filter((task) => task.projectId === project.id);
+      taskTotal += projectTasks.length;
+      taskDone += projectTasks.filter((task) => task.status === "done").length;
+    }
+
+    // Floor for signed-in + registered (~14% of a 7-step track).
+    const loginFloor = registeredStep ? Math.round(100 / totalSteps) : 10;
+    const remaining = 100 - loginFloor;
+
+    let workPercent = 0;
+    if (taskTotal > 0) {
+      workPercent = (taskDone / taskTotal) * remaining;
+    } else if (submittedCount > 0) {
+      workPercent = (submittedCount / 6) * remaining;
+    } else if (activeProjects.length > 0) {
+      // Created projects but no tasks yet — small credit for getting started.
+      workPercent = Math.min(remaining * 0.15, 8);
+    }
+
+    const percent = Math.min(100, Math.round(loginFloor + workPercent));
+    const completedSteps = Math.max(
+      1,
+      Math.round((percent / 100) * totalSteps)
+    );
+
+    const label =
+      taskTotal > 0
+        ? `${taskDone}/${taskTotal} tasks done · ${activeProjects.length} projects`
+        : registeredStep
+          ? `Registered · ${submittedCount}/6 weekly submits`
+          : "Signed in — finish registration sync";
+
+    return { percent, completedSteps, totalSteps, label };
+  }, [
+    projects,
+    registeredStep,
+    submittedCount,
+    tasks,
+    totalSteps,
+    user,
+  ]);
+}
+
 export default function ProgressTracker() {
   const {
-    submittedCount,
-    percentComplete,
-    completedSteps,
-    totalSteps,
     cohortPercentComplete,
     cohortCompletedSteps,
     cohortSubmittedCount,
     cohortSize,
+    totalSteps,
   } = useProgress();
 
-  const personalDone = percentComplete >= 100;
+  const personal = usePersonalProgressPercent();
+  const personalDone = personal.percent >= 100;
   const cohortDone = cohortPercentComplete >= 100;
   const stepQuote =
-    completedSteps > 0
-      ? STEP_QUOTES[Math.min(completedSteps, STEP_QUOTES.length) - 1]
+    personal.completedSteps > 0
+      ? STEP_QUOTES[Math.min(personal.completedSteps, STEP_QUOTES.length) - 1]
       : null;
-  const quotePosition = Math.min(Math.max(percentComplete, 9), 91);
+  const quotePosition = Math.min(Math.max(personal.percent, 9), 91);
 
   return (
     <section id="progress" className="section progress-tracker">
@@ -81,7 +142,7 @@ export default function ProgressTracker() {
             <p className="section-lead">
               {personalDone && cohortDone
                 ? "Incredible — you and the cohort have crossed the finish line!"
-                : "Your personal track runs beside the cohort track — every registration, submission, and peer vote moves the swarm forward."}
+                : "Your personal track moves when you sign in and complete project tasks. The cohort track reflects shared registration and weekly activity."}
             </p>
           </div>
         </div>
@@ -94,15 +155,14 @@ export default function ProgressTracker() {
                 <h3 className="progress-lane__title">Personal progress</h3>
               </div>
               <div className="progress-tracker__stat">
-                <span className="progress-tracker__pct">{percentComplete}%</span>
+                <span className="progress-tracker__pct">{personal.percent}%</span>
                 <span className="progress-tracker__pct-label">
-                  {completedSteps} of {totalSteps} steps · {submittedCount}/6
-                  projects
+                  {personal.label}
                 </span>
               </div>
             </div>
             <RaceTrack
-              percent={percentComplete}
+              percent={personal.percent}
               done={personalDone}
               runnerEmoji="🚀"
               accentClass="race--personal"
@@ -111,7 +171,7 @@ export default function ProgressTracker() {
               <div className="race__quote-row" aria-live="polite">
                 <div className="race__quote-lane">
                   <span
-                    key={completedSteps}
+                    key={personal.completedSteps}
                     className="race__quote"
                     style={{ left: `${quotePosition}%` }}
                   >
@@ -126,7 +186,9 @@ export default function ProgressTracker() {
           <div className="progress-lane">
             <div className="progress-lane__label">
               <div>
-                <span className="progress-lane__eyebrow">Cohort · {cohortSize}</span>
+                <span className="progress-lane__eyebrow">
+                  Cohort · {cohortSize}
+                </span>
                 <h3 className="progress-lane__title">Cohort progress</h3>
               </div>
               <div className="progress-tracker__stat">
@@ -146,73 +208,6 @@ export default function ProgressTracker() {
               accentClass="race--cohort"
             />
           </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function ProgressSteps() {
-  const { submissions, registeredStep } = useProgress();
-
-  return (
-    <section className="progress-steps" aria-label="Course steps">
-      <div className="container">
-        <div className="progress-tracker__grid">
-          <div
-            className={`prog-item ${
-              registeredStep ? "prog-item--done" : ""
-            }`}
-          >
-            <span className="prog-item__check" aria-hidden="true">
-              {registeredStep ? "✓" : ""}
-            </span>
-            <div className="prog-item__body">
-              <span className="prog-item__week">Step 1</span>
-              <span className="prog-item__name">Registration</span>
-              {registeredStep && (
-                <span className="prog-item__meta">Your first move — done!</span>
-              )}
-            </div>
-            <span
-              className={`prog-item__status ${
-                registeredStep ? "is-done" : "is-pending"
-              }`}
-            >
-              {registeredStep ? "Registered" : "Pending"}
-            </span>
-          </div>
-          {MILESTONES.map((m) => {
-            const submission = submissions[m.week];
-            const isDone = Boolean(submission);
-            return (
-              <div
-                key={m.week}
-                className={`prog-item ${isDone ? "prog-item--done" : ""}`}
-              >
-                <span className="prog-item__check" aria-hidden="true">
-                  {isDone ? "✓" : ""}
-                </span>
-                <div className="prog-item__body">
-                  <span className="prog-item__week">{m.week}</span>
-                  <span className="prog-item__name">{m.deliverable}</span>
-                  {submission && (
-                    <span className="prog-item__meta">
-                      Submitted ·{" "}
-                      {new Date(submission.submittedAt).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-                <span
-                  className={`prog-item__status ${
-                    isDone ? "is-done" : "is-pending"
-                  }`}
-                >
-                  {isDone ? "Submitted" : "Pending"}
-                </span>
-              </div>
-            );
-          })}
         </div>
       </div>
     </section>

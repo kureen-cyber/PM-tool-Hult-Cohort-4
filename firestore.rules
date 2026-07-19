@@ -9,24 +9,27 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == uid;
     }
 
+    function userDocExists() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
     function ownRole() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
 
     function isStaff() {
-      return signedIn() && ownRole() in ['professor', 'admin'];
+      return signedIn() && userDocExists() && ownRole() in ['professor', 'admin'];
     }
 
     function isAdmin() {
-      return signedIn() && ownRole() == 'admin';
+      return signedIn() && userDocExists() && ownRole() == 'admin';
     }
 
     match /users/{userId} {
-      allow read: if isSelf(userId) || isStaff();
-      // Self-create is allowed. Elevate staff via VITE_STAFF_EMAILS / Console.
-      // For stricter production, restrict create to role == 'student' only.
+      // Signed-in participants can read the cohort directory (chat / assignees).
+      allow read: if signedIn();
       allow create: if isSelf(userId)
-        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.keys().hasAll(['email', 'role', 'firstName', 'lastName'])
         && request.resource.data.role in ['student', 'professor', 'admin'];
       allow update: if isAdmin()
         || (isSelf(userId)
@@ -38,12 +41,10 @@ service cloud.firestore {
     match /registrations/{regId} {
       allow read: if isStaff() || (signedIn() && resource.data.uid == request.auth.uid);
       allow create: if signedIn()
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.email == request.auth.token.email;
+        && request.resource.data.uid == request.auth.uid;
       allow update, delete: if isAdmin();
     }
 
-    // Cohort PM board — any signed-in user can collaborate.
     match /pmProjects/{projectId} {
       allow read, write: if signedIn();
     }

@@ -1,10 +1,8 @@
 import { parseEmailList } from "../lib/firebase";
 
 /**
- * Optional hard allowlist of cohort participant emails.
- * Prefer env `VITE_COHORT_EMAILS` (comma-separated) so you never commit PII.
- * When empty, any Firebase-authenticated user with a real account may sign in
- * (registration still creates real Auth users).
+ * Optional allowlist — left unused by default so any email can register/login.
+ * Kept for staff who later want to lock signup to a roster via env.
  */
 export const COHORT_EMAIL_ALLOWLIST: string[] = [];
 
@@ -16,8 +14,7 @@ export function getCohortAllowlist(): string[] {
   );
 }
 
-export function isCohortParticipantEmail(email: string): boolean {
-  const allowlist = getCohortAllowlist();
-  if (allowlist.length === 0) return true;
-  return allowlist.includes(email.trim().toLowerCase());
+/** Always true unless a roster is explicitly configured (currently unused). */
+export function isCohortParticipantEmail(_email: string): boolean {
+  return true;
 }

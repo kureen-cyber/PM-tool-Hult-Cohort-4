@@ -65,7 +65,11 @@ const TIMEZONE_OPTIONS = [
   "GMT+8 (Singapore)",
 ];
 
-export default function Registration() {
+export default function Registration({
+  onRegistered,
+}: {
+  onRegistered?: () => void;
+} = {}) {
   const { addRegistration, verifyEmail } = useProgress();
   const { register, firebaseEnabled, refreshEmailVerification } = useAuth();
   const [form, setForm] = useState<FormState>(INITIAL);
@@ -262,6 +266,15 @@ export default function Registration() {
 
             <button
               type="button"
+              className="btn btn-primary"
+              onClick={() => {
+                onRegistered?.();
+              }}
+            >
+              Enter workspace
+            </button>
+            <button
+              type="button"
               className="btn btn-ghost registration__another"
               onClick={resetForm}
             >
@@ -334,7 +347,7 @@ export default function Registration() {
 
             <Field
               id="field-email"
-              label="Cohort email"
+              label="Email address"
               required
               error={errors.email}
             >
@@ -344,7 +357,7 @@ export default function Registration() {
                 autoComplete="email"
                 value={form.email}
                 onChange={(e) => update("email", e.target.value)}
-                placeholder="you@hult.edu"
+                placeholder="you@example.com"
               />
             </Field>
 

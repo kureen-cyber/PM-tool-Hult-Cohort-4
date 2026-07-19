@@ -78,6 +78,12 @@
   overflow-y: auto;
   padding-right: 3px;
 }
+.chat-directory__empty {
+  margin: 8px 4px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
 .chat-person {
   display: flex;
   align-items: center;

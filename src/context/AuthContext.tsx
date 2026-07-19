@@ -22,7 +22,6 @@ import {
   getUserProfile,
   type UserProfile,
 } from "../lib/users";
-import { isCohortParticipantEmail } from "../data/cohort-roster";
 
 export type Role = "student" | "professor" | "admin";
 
@@ -117,27 +116,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     if (!isFirebaseConfigured || !auth) {
       throw new Error(
-        "Real participant login requires Firebase. Add VITE_FIREBASE_* values to .env.local."
+        "Sign-in requires Firebase. Add VITE_FIREBASE_* values to .env.local."
       );
     }
     const normalized = email.trim().toLowerCase();
-    if (!isCohortParticipantEmail(normalized)) {
-      throw new Error(
-        "This email is not on the cohort participant roster. Contact your professor if you believe this is an error."
-      );
-    }
     const credential = await signInWithEmailAndPassword(
       auth,
       normalized,
       password
     );
-    const profile = await getUserProfile(credential.user.uid);
-    if (!profile) {
-      await signOut(auth);
-      throw new Error(
-        "No participant profile found for this account. Register with your cohort email first."
-      );
+    const authEmail = (credential.user.email ?? normalized).trim().toLowerCase();
+
+    let profile: UserProfile | null = null;
+    try {
+      profile = await getUserProfile(credential.user.uid);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (/permission|insufficient/i.test(message)) {
+        throw new Error(
+          "Firestore blocked your profile read. Ask staff to deploy firestore.rules."
+        );
+      }
+      throw err;
     }
+
+    if (!profile) {
+      const names = (credential.user.displayName ?? "").trim().split(/\s+/);
+      try {
+        profile = await createUserProfile(credential.user.uid, {
+          email: authEmail,
+          firstName: names[0] || "Participant",
+          lastName: names.slice(1).join(" ") || "User",
+          programRole: "Student",
+          role: resolveAuthRole(authEmail),
+        });
+      } catch (err) {
+        // Still allow workspace access; role defaults to student from email lists.
+        console.error("Profile create failed on login:", err);
+        profile = {
+          email: authEmail,
+          firstName: names[0] || "Participant",
+          lastName: names.slice(1).join(" ") || "User",
+          role: resolveAuthRole(authEmail),
+          programRole: "Student",
+        };
+      }
+    }
+
     setUser(mapFirebaseUser(credential.user, profile));
   }, []);
 
@@ -149,11 +174,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const email = input.email.trim().toLowerCase();
-    if (!isCohortParticipantEmail(email)) {
-      throw new Error(
-        "Only rostered cohort participant emails can register. Ask staff to add your email."
-      );
-    }
 
     const credential = await createUserWithEmailAndPassword(
       auth,
@@ -165,18 +185,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await updateProfile(credential.user, { displayName });
 
     const role = resolveAuthRole(email);
-    const profile = await createUserProfile(credential.user.uid, {
-      email,
-      firstName: input.firstName,
-      lastName: input.lastName,
-      programRole: input.programRole,
-      country: input.country,
-      experience: input.experience,
-      primaryStack: input.primaryStack,
-      role,
-    });
+    let profile: UserProfile;
+    try {
+      profile = await createUserProfile(credential.user.uid, {
+        email,
+        firstName: input.firstName,
+        lastName: input.lastName,
+        programRole: input.programRole,
+        country: input.country,
+        experience: input.experience,
+        primaryStack: input.primaryStack,
+        role,
+      });
+    } catch (err) {
+      console.error("Profile create failed on register:", err);
+      profile = {
+        email,
+        firstName: input.firstName.trim(),
+        lastName: input.lastName.trim(),
+        role,
+        programRole: input.programRole || "Student",
+        country: input.country?.trim() || "",
+        experience: input.experience || "",
+        primaryStack: input.primaryStack?.trim() || "",
+      };
+    }
 
-    await sendEmailVerification(credential.user);
+    try {
+      await sendEmailVerification(credential.user);
+    } catch (err) {
+      console.error("Verification email failed:", err);
+    }
 
     const mapped = mapFirebaseUser(credential.user, profile);
     setUser(mapped);

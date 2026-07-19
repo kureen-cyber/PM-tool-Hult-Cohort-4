@@ -9,7 +9,24 @@ import {
   type ReactNode,
 } from "react";
 import { MILESTONES } from "../data/milestones";
-import { SEED_PARTICIPANTS } from "../data/participants";
+import { FICTIONAL_PARTICIPANT_NAMES } from "../data/participants";
+
+const FICTIONAL_NAME_SET = new Set(
+  FICTIONAL_PARTICIPANT_NAMES.map((name) => name.trim().toLowerCase())
+);
+
+function isFictionalRegistrant(entry: Registrant): boolean {
+  const full = `${entry.firstName} ${entry.lastName}`.trim().toLowerCase();
+  return FICTIONAL_NAME_SET.has(full);
+}
+
+function sanitizeRegistrations(list: Registrant[]): Registrant[] {
+  return list.filter((entry) => {
+    if (!entry.email?.includes("@")) return false;
+    if (isFictionalRegistrant(entry)) return false;
+    return true;
+  });
+}
 
 export interface Registrant {
   id: string;
@@ -42,6 +59,13 @@ type VoteTally = Record<string, Record<string, number>>;
 interface ProgressContextValue {
   registrations: Registrant[];
   addRegistration: (data: RegistrationInput) => Registrant;
+  ensureAuthRegistration: (input: {
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    role?: string;
+  }) => Registrant;
+  isRegisteredEmail: (email: string) => boolean;
   verifyEmail: (token: string) => boolean;
   submissions: Record<string, Submission>;
   submitProject: (week: string, reference: string, challenges: string) => void;
@@ -50,6 +74,9 @@ interface ProgressContextValue {
   myVotes: Record<string, string>;
   castVote: (week: string, participant: string) => void;
   participants: string[];
+  /** Bind the signed-in email so personal progress is user-specific. */
+  setActiveUserEmail: (email: string | null) => void;
+  activeUserEmail: string | null;
   registeredStep: boolean;
   submittedCount: number;
   totalSteps: number;
@@ -94,8 +121,9 @@ function makeId(): string {
 
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const [registrations, setRegistrations] = useState<Registrant[]>(() =>
-    load<Registrant[]>(KEYS.registrations, [])
+    sanitizeRegistrations(load<Registrant[]>(KEYS.registrations, []))
   );
+  const [activeUserEmail, setActiveUserEmail] = useState<string | null>(null);
   const [submissions, setSubmissions] = useState<Record<string, Submission>>(
     () => load<Record<string, Submission>>(KEYS.submissions, {})
   );
@@ -143,6 +171,50 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setRegistrations((prev) => [...prev, registrant]);
     return registrant;
   }, []);
+
+  const ensureAuthRegistration = useCallback(
+    (input: {
+      email: string;
+      firstName?: string;
+      lastName?: string;
+      role?: string;
+    }) => {
+      const email = input.email.trim().toLowerCase();
+      let result: Registrant | undefined;
+      setRegistrations((prev) => {
+        const existing = prev.find((r) => r.email.toLowerCase() === email);
+        if (existing) {
+          result = existing;
+          return prev;
+        }
+        const registrant: Registrant = {
+          firstName: input.firstName?.trim() || "Participant",
+          lastName: input.lastName?.trim() || "User",
+          email,
+          role: input.role || "Student",
+          country: "",
+          experience: "",
+          primaryStack: "",
+          id: makeId(),
+          emailVerified: true,
+          verifyToken: makeId(),
+          registeredAt: new Date().toISOString(),
+        };
+        result = registrant;
+        return [...prev, registrant];
+      });
+      return result!;
+    },
+    []
+  );
+
+  const isRegisteredEmail = useCallback(
+    (email: string) =>
+      registrations.some(
+        (r) => r.email.toLowerCase() === email.trim().toLowerCase()
+      ),
+    [registrations]
+  );
 
   const verifyEmail = useCallback((token: string) => {
     let found = false;
@@ -201,15 +273,23 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
+  // Genuine registrants only — no seed/demo names in the cohort directory.
   const participants = useMemo(() => {
-    const names = new Set<string>(SEED_PARTICIPANTS);
-    registrations.forEach((r) =>
-      names.add(`${r.firstName} ${r.lastName}`.trim())
-    );
-    return Array.from(names).sort((a, b) => a.localeCompare(b));
+    const names = new Set<string>();
+    registrations.forEach((r) => {
+      if (isFictionalRegistrant(r)) return;
+      names.add(`${r.firstName} ${r.lastName}`.trim());
+    });
+    return Array.from(names).filter(Boolean).sort((a, b) => a.localeCompare(b));
   }, [registrations]);
 
-  const registeredStep = registrations.length > 0;
+  // Personal progress: current signed-in user registered + their submissions.
+  const registeredStep = Boolean(
+    activeUserEmail &&
+      registrations.some(
+        (r) => r.email.toLowerCase() === activeUserEmail.toLowerCase()
+      )
+  );
   const submittedCount = Object.keys(submissions).filter((week) =>
     MILESTONES.some((m) => m.week === week)
   ).length;
@@ -217,12 +297,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const completedSteps = (registeredStep ? 1 : 0) + submittedCount;
   const percentComplete = Math.round((completedSteps / totalSteps) * 100);
 
-  const cohortSize = Math.max(
-    SEED_PARTICIPANTS.length,
-    registrations.length,
-    participants.length,
-    1
-  );
+  const cohortSize = Math.max(registrations.length, 1);
   const cohortRegisteredStep = registrations.length > 0;
   const activeCohortWeeks = new Set<string>([
     ...cohortWeeks,
@@ -244,6 +319,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     () => ({
       registrations,
       addRegistration,
+      ensureAuthRegistration,
+      isRegisteredEmail,
       verifyEmail,
       submissions,
       submitProject,
@@ -252,6 +329,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       myVotes,
       castVote,
       participants,
+      setActiveUserEmail,
+      activeUserEmail,
       registeredStep,
       submittedCount,
       totalSteps,
@@ -266,6 +345,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     [
       registrations,
       addRegistration,
+      ensureAuthRegistration,
+      isRegisteredEmail,
       verifyEmail,
       submissions,
       submitProject,
@@ -274,6 +355,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       myVotes,
       castVote,
       participants,
+      activeUserEmail,
       registeredStep,
       submittedCount,
       totalSteps,

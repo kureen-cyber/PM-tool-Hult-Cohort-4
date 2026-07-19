@@ -1,9 +1,12 @@
 import {
+  collection,
   doc,
   getDoc,
+  onSnapshot,
   serverTimestamp,
   setDoc,
   updateDoc,
+  type Unsubscribe,
 } from "firebase/firestore";
 import { db, resolveAuthRole } from "./firebase";
 import type { Role } from "../context/AuthContext";
@@ -19,6 +22,13 @@ export interface UserProfile {
   primaryStack?: string;
   createdAt?: unknown;
   updatedAt?: unknown;
+}
+
+export interface DirectoryUser {
+  uid: string;
+  email: string;
+  name: string;
+  role: string;
 }
 
 export async function createUserProfile(
@@ -60,4 +70,42 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 export async function touchUserProfile(uid: string): Promise<void> {
   if (!db) return;
   await updateDoc(doc(db, "users", uid), { updatedAt: serverTimestamp() });
+}
+
+/** Live cohort directory from Firestore `users` (genuine registered accounts). */
+export function subscribeUserDirectory(
+  onChange: (people: DirectoryUser[]) => void,
+  onError?: (message: string) => void
+): Unsubscribe {
+  if (!db) {
+    onChange([]);
+    return () => undefined;
+  }
+
+  return onSnapshot(
+    collection(db, "users"),
+    (snap) => {
+      const people = snap.docs
+        .map((entry) => {
+          const data = entry.data() as UserProfile;
+          const email = (data.email || "").trim().toLowerCase();
+          if (!email.includes("@")) return null;
+          const name =
+            `${data.firstName || ""} ${data.lastName || ""}`.trim() || email;
+          return {
+            uid: entry.id,
+            email,
+            name,
+            role: data.programRole || data.role || "Student",
+          };
+        })
+        .filter((person): person is DirectoryUser => person !== null)
+        .sort((a, b) => a.name.localeCompare(b.name));
+      onChange(people);
+    },
+    (err) => {
+      onError?.(err.message);
+      onChange([]);
+    }
+  );
 }

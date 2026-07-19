@@ -29,13 +29,6 @@ export default function Hero({ onNavigate }: HeroProps) {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={() => onNavigate("register")}
-            >
-              Register for Cohort 4
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost"
               onClick={() => onNavigate("projects")}
             >
               Open projects

@@ -8,6 +8,10 @@ import {
 } from "react";
 import { ROLE_LABELS, useAuth, type Role } from "../context/AuthContext";
 import { useProgress } from "../context/ProgressContext";
+import {
+  subscribeUserDirectory,
+  type DirectoryUser,
+} from "../lib/users";
 import "./CohortChat.css";
 
 type ChannelId = "general" | "project-help" | "announcements";
@@ -60,48 +64,70 @@ function makeId(): string {
 
 export default function CohortChat() {
   const { user } = useAuth();
-  const { registrations, participants } = useProgress();
+  const { isRegisteredEmail } = useProgress();
   const [channel, setChannel] = useState<ChannelId>("general");
   const [messages, setMessages] = useState<ChatMessage[]>(loadMessages);
   const [draft, setDraft] = useState("");
+  const [directory, setDirectory] = useState<DirectoryUser[]>([]);
+  const [directoryError, setDirectoryError] = useState<string | null>(null);
   const broadcastRef = useRef<BroadcastChannel | null>(null);
   const messageEndRef = useRef<HTMLDivElement>(null);
 
+  const canPost = Boolean(user && isRegisteredEmail(user.email));
+
   const displayName = useMemo(() => {
     if (!user) return "";
-    const registrant = registrations.find(
+    const match = directory.find(
       (entry) => entry.email.toLowerCase() === user.email.toLowerCase()
     );
-    return registrant
-      ? `${registrant.firstName} ${registrant.lastName}`.trim()
-      : user.email;
-  }, [registrations, user]);
+    return match?.name || user.displayName || user.email;
+  }, [directory, user]);
 
-  const directory = useMemo(() => {
-    const people = new Map<string, { name: string; role: string }>();
-    participants.forEach((name) =>
-      people.set(name.toLowerCase(), { name, role: "Student" })
-    );
-    registrations.forEach((entry) => {
-      const name = `${entry.firstName} ${entry.lastName}`.trim();
-      people.set(name.toLowerCase(), {
-        name,
-        role: entry.role || "Student",
-      });
-    });
-    if (user && displayName) {
-      people.set(displayName.toLowerCase(), {
-        name: displayName,
-        role: ROLE_LABELS[user.role],
-      });
+  useEffect(() => {
+    if (!user) {
+      setDirectory([]);
+      return;
     }
-    return Array.from(people.values()).sort((a, b) =>
-      a.name.localeCompare(b.name)
+    const unsubscribe = subscribeUserDirectory(
+      (people) => {
+        setDirectory(people);
+        setDirectoryError(null);
+      },
+      (message) => setDirectoryError(message)
     );
-  }, [displayName, participants, registrations, user]);
+    return unsubscribe;
+  }, [user]);
+
+  const registeredEmails = useMemo(
+    () => new Set(directory.map((entry) => entry.email.trim().toLowerCase())),
+    [directory]
+  );
+
+  // Always include the signed-in user so the directory is never empty for them.
+  const visibleDirectory = useMemo(() => {
+    if (!user) return directory;
+    const email = user.email.toLowerCase();
+    if (directory.some((entry) => entry.email.toLowerCase() === email)) {
+      return directory;
+    }
+    return [
+      ...directory,
+      {
+        uid: user.uid,
+        email: user.email,
+        name: user.displayName || user.email,
+        role: ROLE_LABELS[user.role],
+      },
+    ].sort((a, b) => a.name.localeCompare(b.name));
+  }, [directory, user]);
 
   const channelMessages = messages
-    .filter((message) => message.channel === channel)
+    .filter(
+      (message) =>
+        message.channel === channel &&
+        (registeredEmails.has(message.email.trim().toLowerCase()) ||
+          message.email.toLowerCase() === user?.email.toLowerCase())
+    )
     .sort((a, b) => a.sentAt.localeCompare(b.sentAt));
 
   useEffect(() => {
@@ -142,7 +168,7 @@ export default function CohortChat() {
 
   function sendMessage(event: FormEvent) {
     event.preventDefault();
-    if (!user || !draft.trim()) return;
+    if (!user || !canPost || !draft.trim()) return;
     saveMessages([
       ...messages,
       {
@@ -173,14 +199,11 @@ export default function CohortChat() {
             <span className="chat-gate__icon" aria-hidden="true">
               💬
             </span>
-            <span className="eyebrow">Registrant &amp; staff access</span>
+            <span className="eyebrow">Registered participants only</span>
             <h2 className="section-title">Join the cohort conversation</h2>
             <p className="section-lead">
-              Log in as a registered student or professor to read messages and
-              communicate with the cohort.
-            </p>
-            <p className="chat-gate__hint">
-              Use the <strong>Log In</strong> button in the navigation bar.
+              Log in as a registered participant to read messages and chat with
+              the cohort.
             </p>
           </div>
         </div>
@@ -197,8 +220,8 @@ export default function CohortChat() {
           <span className="eyebrow">Cohort communication</span>
           <h2 className="section-title">Chat</h2>
           <p className="section-lead">
-            Ask questions, share progress, and stay connected with registrants
-            and professors across the Developer Program.
+            Ask questions and stay connected with people who have real accounts
+            in this cohort — no demo names.
           </p>
         </div>
 
@@ -208,7 +231,10 @@ export default function CohortChat() {
               <span className="chat-sidebar__label">Channels</span>
               {CHANNELS.map((item) => {
                 const count = messages.filter(
-                  (message) => message.channel === item.id
+                  (message) =>
+                    message.channel === item.id &&
+                    (registeredEmails.has(message.email.trim().toLowerCase()) ||
+                      message.email.toLowerCase() === user.email.toLowerCase())
                 ).length;
                 return (
                   <button
@@ -228,20 +254,31 @@ export default function CohortChat() {
 
             <div className="chat-sidebar__section chat-directory">
               <span className="chat-sidebar__label">
-                Cohort · {directory.length}
+                Registered · {visibleDirectory.length}
               </span>
+              {directoryError && (
+                <p className="chat-directory__empty">
+                  Directory sync issue: {directoryError}
+                </p>
+              )}
               <div className="chat-directory__list">
-                {directory.map((person) => (
-                  <div key={person.name} className="chat-person">
-                    <span className="chat-avatar" aria-hidden="true">
-                      {person.name.charAt(0).toUpperCase()}
-                    </span>
-                    <span>
-                      <strong>{person.name}</strong>
-                      <small>{person.role}</small>
-                    </span>
-                  </div>
-                ))}
+                {visibleDirectory.length === 0 ? (
+                  <p className="chat-directory__empty">
+                    No registered accounts yet.
+                  </p>
+                ) : (
+                  visibleDirectory.map((person) => (
+                    <div key={person.uid || person.email} className="chat-person">
+                      <span className="chat-avatar" aria-hidden="true">
+                        {person.name.charAt(0).toUpperCase()}
+                      </span>
+                      <span>
+                        <strong>{person.name}</strong>
+                        <small>{person.role}</small>
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </aside>
@@ -263,7 +300,8 @@ export default function CohortChat() {
                   <span aria-hidden="true">👋</span>
                   <strong>Start the conversation</strong>
                   <p>
-                    Be the first to post in #{activeChannel.label.toLowerCase()}.
+                    Be the first registered participant to post in #
+                    {activeChannel.label.toLowerCase()}.
                   </p>
                 </div>
               ) : (
@@ -307,15 +345,24 @@ export default function CohortChat() {
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
                 onKeyDown={handleComposerKey}
-                placeholder={`Message #${activeChannel.label.toLowerCase()}`}
+                placeholder={
+                  canPost
+                    ? `Message #${activeChannel.label.toLowerCase()}`
+                    : "Waiting for registrant sync…"
+                }
                 aria-label={`Message ${activeChannel.label}`}
+                disabled={!canPost}
               />
               <div className="chat-composer__footer">
-                <span>Enter to send · Shift + Enter for a new line</span>
+                <span>
+                  {canPost
+                    ? "Enter to send · Shift + Enter for a new line"
+                    : "Only registered participants can post"}
+                </span>
                 <button
                   type="submit"
                   className="btn btn-primary"
-                  disabled={!draft.trim()}
+                  disabled={!canPost || !draft.trim()}
                 >
                   Send
                 </button>

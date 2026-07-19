@@ -23,7 +23,7 @@ const PAGE_ITEMS: SearchResult[] = [
     id: "page-overview",
     kind: "page",
     title: "Overview",
-    subtitle: "Hero, progress steps, and calendar",
+    subtitle: "Hero and course calendar",
     view: "overview",
   },
   {
@@ -53,13 +53,6 @@ const PAGE_ITEMS: SearchResult[] = [
     title: "Settings",
     subtitle: "Account, theme, AI assistant",
     view: "settings",
-  },
-  {
-    id: "page-register",
-    kind: "page",
-    title: "Register",
-    subtitle: "Join Cohort 4 with your participant email",
-    view: "register",
   },
 ];
 

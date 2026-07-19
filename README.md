@@ -40,7 +40,8 @@ roles, and Firestore rules. Agent guidance: [AGENTS.md](AGENTS.md).
 
 - **Projects & tasks** — create / edit / archive projects; tasks with title,
   description, status (≥3), assignee; filters by project / status / assignee
-- **Firebase Auth** — real email/password accounts that scale across the cohort
+- **Firebase Auth** — real email/password accounts; the app is gated so only
+  signed-in participants see the workspace (login/register first)
 - **Peer Review** — technical reviews per weekly submission + colleague vote dropdown
 - **Progress** — personal and cohort race tracks across tabs
 - **Settings** + floating **AI assistant**

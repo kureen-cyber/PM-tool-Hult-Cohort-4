@@ -1,6 +1,5 @@
-// Seed cohort participants used to populate the peer-vote dropdown. Registered
-// students are merged in on top of these at runtime.
-export const SEED_PARTICIPANTS: string[] = [
+// Known fictional seed names (retired). Used only to purge stale localStorage.
+export const FICTIONAL_PARTICIPANT_NAMES: string[] = [
   "Ada Okafor",
   "Liam Chen",
   "Sofia Marquez",
@@ -10,3 +9,6 @@ export const SEED_PARTICIPANTS: string[] = [
   "Mia Nakamura",
   "Omar Haddad",
 ];
+
+/** @deprecated Empty — directories use Firestore users / real registrants only. */
+export const SEED_PARTICIPANTS: string[] = [];

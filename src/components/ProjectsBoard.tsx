@@ -218,7 +218,8 @@ export default function ProjectsBoard({
             <h2 className="section-title">Projects &amp; tasks</h2>
             <p className="section-lead">
               Create projects and tasks with title, description, status, and
-              assignee. Edit or archive projects anytime. Signed-in participants
+              assignee. Every project gets a progress race bar that moves as
+              tasks reach Done. Edit or archive anytime. Signed-in participants
               sync through Firebase so the board scales across the cohort.
             </p>
             {searchQuery.trim() && (
@@ -475,6 +476,9 @@ export default function ProjectsBoard({
         {visibleProjects.length > 0 && (
           <div className="pm-project-list">
             <h3 className="pm-subtitle">Projects</h3>
+            <p className="pm-project-list__hint">
+              Progress bars update from task completion (Done ÷ total tasks).
+            </p>
             <ul>
               {visibleProjects.map((p) => {
                 const projectTasks = tasks.filter((t) => t.projectId === p.id);

@@ -6,6 +6,9 @@ interface LoginModalProps {
   open: boolean;
   onClose: () => void;
   onRegister: () => void;
+  /** When true, backdrop / Esc cannot dismiss without signing in. */
+  required?: boolean;
+  onSuccess?: () => void;
 }
 
 function mapAuthError(error: unknown): string {
@@ -33,6 +36,8 @@ export default function LoginModal({
   open,
   onClose,
   onRegister,
+  required = false,
+  onSuccess,
 }: LoginModalProps) {
   const {
     login,
@@ -51,7 +56,7 @@ export default function LoginModal({
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !required) onClose();
     };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -60,7 +65,13 @@ export default function LoginModal({
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [open, onClose]);
+  }, [open, onClose, required]);
+
+  useEffect(() => {
+    if (open && user) {
+      onSuccess?.();
+    }
+  }, [open, user, onSuccess]);
 
   if (!open) return null;
 
@@ -87,9 +98,9 @@ export default function LoginModal({
     try {
       await login(email.trim(), password);
       setPassword("");
-      setInfo(
-        "Signed in. If you haven't verified your email yet, check your inbox."
-      );
+      setInfo("Signed in successfully.");
+      onSuccess?.();
+      onClose();
     } catch (err) {
       setError(mapAuthError(err));
     } finally {
@@ -131,7 +142,7 @@ export default function LoginModal({
     <div
       className="modal-backdrop"
       onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (!required && e.target === e.currentTarget) onClose();
       }}
     >
       <div
@@ -140,14 +151,16 @@ export default function LoginModal({
         aria-modal="true"
         aria-labelledby="login-title"
       >
-        <button
-          type="button"
-          className="modal__close"
-          aria-label="Close login"
-          onClick={onClose}
-        >
-          ×
-        </button>
+        {!required && (
+          <button
+            type="button"
+            className="modal__close"
+            aria-label="Close login"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        )}
 
         <div className="modal__brand">
           <span className="modal__mark" aria-hidden="true">
@@ -158,8 +171,8 @@ export default function LoginModal({
           Participant sign-in
         </h2>
         <p className="modal__subtitle">
-          Use your real cohort account credentials. Demo login is disabled —
-          Firebase Auth scales across the full cohort.
+            Log in to your Hult Developer Program workspace with any email
+            account you registered.
         </p>
 
         {!firebaseEnabled && (
@@ -172,7 +185,7 @@ export default function LoginModal({
         <form onSubmit={handleSubmit} className="modal__form" noValidate>
           <div className="field">
             <label htmlFor="login-email" className="field__label">
-              Cohort email
+              Email address
             </label>
             <div className="field__control">
               <input
@@ -185,7 +198,7 @@ export default function LoginModal({
                   setEmail(e.target.value);
                   setError(null);
                 }}
-                placeholder="you@hult.edu"
+                placeholder="you@example.com"
               />
             </div>
           </div>
@@ -246,7 +259,10 @@ export default function LoginModal({
           <button
             type="button"
             className="btn btn-primary btn-block"
-            onClick={onClose}
+            onClick={() => {
+              onSuccess?.();
+              onClose();
+            }}
           >
             Continue to workspace
           </button>
@@ -259,7 +275,7 @@ export default function LoginModal({
             className="modal__link modal__link-btn"
             onClick={onRegister}
           >
-            Register with your participant email
+            Register here
           </button>
         </p>
       </div>

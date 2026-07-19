@@ -1,7 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useProgress } from "../context/ProgressContext";
 import { MILESTONES, type Milestone } from "../data/milestones";
+import { subscribeUserDirectory } from "../lib/users";
 import "./PeerReview.css";
 
 interface TechnicalReview {
@@ -33,6 +34,27 @@ function makeId(): string {
 export default function PeerReview() {
   const { user } = useAuth();
   const [reviews, setReviews] = useState<ReviewStore>(loadReviews);
+  const [colleagueNames, setColleagueNames] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!user) {
+      setColleagueNames([]);
+      return;
+    }
+    return subscribeUserDirectory((people) => {
+      const self = (user.displayName || "").trim().toLowerCase();
+      const selfEmail = user.email.toLowerCase();
+      setColleagueNames(
+        people
+          .filter(
+            (person) =>
+              person.email.toLowerCase() !== selfEmail &&
+              person.name.toLowerCase() !== self
+          )
+          .map((person) => person.name)
+      );
+    });
+  }, [user]);
 
   function addReview(week: string, reviewer: string, comment: string) {
     const next = {
@@ -77,6 +99,7 @@ export default function PeerReview() {
               milestone={milestone}
               reviews={reviews[milestone.week] ?? []}
               defaultReviewer={user?.email ?? ""}
+              colleagueOptions={colleagueNames}
               onAddReview={addReview}
             />
           ))}
@@ -90,6 +113,7 @@ interface SubmissionCardProps {
   milestone: Milestone;
   reviews: TechnicalReview[];
   defaultReviewer: string;
+  colleagueOptions: string[];
   onAddReview: (week: string, reviewer: string, comment: string) => void;
 }
 
@@ -97,16 +121,15 @@ function SubmissionCard({
   milestone,
   reviews,
   defaultReviewer,
+  colleagueOptions,
   onAddReview,
 }: SubmissionCardProps) {
   const {
     submissions,
-    participants,
     votes,
     myVotes,
     castVote,
   } = useProgress();
-  const { user } = useAuth();
   const [reviewer, setReviewer] = useState(defaultReviewer);
   const [comment, setComment] = useState("");
   const [selectedVote, setSelectedVote] = useState("");
@@ -121,11 +144,6 @@ function SubmissionCard({
   const weekVotes = votes[milestone.week] ?? {};
   const leaderboard = Object.entries(weekVotes).sort((a, b) => b[1] - a[1]);
   const totalVotes = leaderboard.reduce((sum, [, count]) => sum + count, 0);
-
-  const selfName = user?.displayName?.trim() || "";
-  const colleagueOptions = participants.filter(
-    (name) => !selfName || name.toLowerCase() !== selfName.toLowerCase()
-  );
 
   function submitReview(event: FormEvent) {
     event.preventDefault();
@@ -189,7 +207,7 @@ function SubmissionCard({
           required
         />
         <datalist id="peer-review-participants">
-          {participants.map((name) => (
+          {colleagueOptions.map((name) => (
             <option key={name} value={name} />
           ))}
         </datalist>
